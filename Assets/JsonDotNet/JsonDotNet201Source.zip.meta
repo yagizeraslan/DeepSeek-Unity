@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 9a6f8c7c1ea72ce46831c5e1b6150d0c
+timeCreated: 1466790933
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 11347
+  packageName: JSON .NET For Unity
+  packageVersion: 2.0.1
+  assetPath: Assets/JsonDotNet/JsonDotNet201Source.zip
+  uploadId: 124115

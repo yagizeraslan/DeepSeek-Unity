@@ -100,6 +100,6 @@ Fork repository and submit pull requests with your changes.
 
 ## Contact
 
-Name: [Your Name]
-Email: [your-email@example.com]
-LinkedIn: Your LinkedIn Profile
+Name: Yağız ERASLAN
+Email: yagizeraslan@gmail.com
+LinkedIn: https://www.linkedin.com/in/yagizeraslan/

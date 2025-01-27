@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d6807fedb8dcaf04682d2c84f0ab753f
+timeCreated: 1466788355
+licenseType: Store
+TextScriptImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 11347
+  packageName: JSON .NET For Unity
+  packageVersion: 2.0.1
+  assetPath: Assets/JsonDotNet/Assemblies/Standalone/Newtonsoft.Json.XML
+  uploadId: 124115

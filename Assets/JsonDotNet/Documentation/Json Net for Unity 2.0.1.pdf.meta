@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 4e7d9a07cc3f02a41a575406e7230846
+timeCreated: 1466788421
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 11347
+  packageName: JSON .NET For Unity
+  packageVersion: 2.0.1
+  assetPath: Assets/JsonDotNet/Documentation/Json Net for Unity 2.0.1.pdf
+  uploadId: 124115
