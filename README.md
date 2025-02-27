@@ -16,7 +16,6 @@ A lightweight, easy-to-use integration of the DeepSeek AI API for Unity projects
 ## Requirements
 
 - Unity 2020.3 LTS or newer
-- [Newtonsoft.Json for Unity](https://github.com/jilleJr/Newtonsoft.Json-for-Unity) package (via Package Manager)
 - TextMeshPro package (included in newer Unity versions)
 - DeepSeek API key (obtain from [DeepSeek's website](https://deepseek.ai))
 
@@ -176,7 +175,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Acknowledgements
 
 - [DeepSeek](https://deepseek.ai) for their powerful AI models
-- [Newtonsoft.Json for Unity](https://github.com/jilleJr/Newtonsoft.Json-for-Unity) for JSON serialization
 
 ## Contact
 

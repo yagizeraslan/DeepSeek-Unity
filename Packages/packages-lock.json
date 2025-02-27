@@ -101,6 +101,14 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.asset-store-tools": {
+      "version": "file:com.unity.asset-store-tools",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.1"
+      }
+    },
     "com.unity.burst": {
       "version": "1.8.18",
       "depth": 2,
@@ -295,6 +303,14 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.textmeshpro": {
+      "version": "3.0.6",
+      "depth": 1,
+      "source": "builtin",
+      "dependencies": {
+        "com.unity.ugui": "2.0.0"
+      }
+    },
     "com.unity.timeline": {
       "version": "1.8.7",
       "depth": 0,
@@ -325,6 +341,16 @@
         "com.unity.modules.jsonserialize": "1.0.0"
       },
       "url": "https://packages.unity.com"
+    },
+    "com.yagizeraslan.deepseek": {
+      "version": "https://github.com/yagizeraslan/DeepSeek-Unity.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.textmeshpro": "3.0.6",
+        "com.unity.nuget.newtonsoft-json": "3.0.2"
+      },
+      "hash": "a055d2bd4a2c1da55ddf363a180cb66504f7b2d5"
     },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",
