@@ -174,7 +174,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgements
 
-- [DeepSeek](https://deepseek.ai) for their powerful AI models
+- [DeepSeek](https://www.deepseek.com/) for their powerful AI models
 
 ## Contact
 
