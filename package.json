@@ -1,0 +1,35 @@
+{
+  "name": "com.yagizeraslan.deepseek",
+  "version": "1.0.0",
+  "displayName": "DeepSeek API for Unity",
+  "description": "A lightweight, easy-to-use integration of the DeepSeek AI API for Unity projects.",
+  "unity": "2020.3",
+  "documentationUrl": "https://github.com/yagizeraslan/DeepSeek-Unity/blob/main/README.md",
+  "changelogUrl": "https://github.com/yagizeraslan/DeepSeek-Unity/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/yagizeraslan/DeepSeek-Unity/blob/main/LICENSE",
+  "dependencies": {
+    "com.unity.textmeshpro": "3.0.6",
+    "com.unity.nuget.newtonsoft-json": "3.0.2"
+  },
+  "keywords": [
+    "deepseek",
+    "ai",
+    "api",
+    "chat",
+    "language model",
+    "llm",
+    "ai assistant"
+  ],
+  "author": {
+    "name": "Yagiz ERASLAN",
+    "email": "yagizeraslan@gmail.com",
+    "url": "https://www.linkedin.com/in/yagizeraslan/"
+  },
+  "samples": [
+    {
+      "displayName": "DeepSeek Chat Example",
+      "description": "Complete example of a DeepSeek chat interface.",
+      "path": "Samples~/DeepSeek-Chat"
+    }
+  ]
+}
