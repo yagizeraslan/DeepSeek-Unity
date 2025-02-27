@@ -1,6 +1,6 @@
 # Unity DeepSeek API Integration
 
-![DeepSeek Unity Integration](https://opdeepseek.com/wp-content/uploads/2025/02/Add-a-subheading-14.webp)
+![DeepSeek Unity Integration](https://drive.google.com/uc?export=view&id=1-7qe3yTP9GrMo4ZKiVDmZ9-Ow5qR308P)
 
 A lightweight, easy-to-use integration of the DeepSeek AI API for Unity projects. This package allows Unity developers to quickly implement AI-powered chat capabilities using DeepSeek's powerful language models.
 
@@ -28,7 +28,7 @@ A lightweight, easy-to-use integration of the DeepSeek AI API for Unity projects
 2. Go to Window > Package Manager
 3. Click the "+" button in the top-left corner
 4. Select "Add package from git URL..."
-5. Enter the repository URL: `https://github.com/yourusername/unity-deepseek-api.git`
+5. Enter the repository URL: `https://github.com/yagizeraslan/DeepSeek-Unity.git`
 6. Click "Add"
 
 ### Option 2: Manual Installation
