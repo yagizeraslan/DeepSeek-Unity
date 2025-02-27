@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using TMPro;
+using System.Threading.Tasks;
 
 namespace DeepSeek
 {
@@ -13,60 +14,197 @@ namespace DeepSeek
         [SerializeField] private RectTransform sent;
         [SerializeField] private RectTransform received;
 
+        [Header("DeepSeek API Settings")]
+        [Tooltip("Your DeepSeek API Key")]
+        [SerializeField] private string apiKey = "YOUR-DEEPSEEK-API-KEY";
+        
+        [Tooltip("Enable or disable response streaming")]
+        [SerializeField] private bool useStreaming = true;
+        
+        [Tooltip("Select which DeepSeek model to use")]
+        [SerializeField] private DeepSeekModel modelType = DeepSeekModel.DeepSeekV3;
+        
+        [Tooltip("Temperature for response generation (0.0-1.0)")]
+        [Range(0.0f, 1.0f)]
+        [SerializeField] private float temperature = 0.7f;
+
+        [Header("Initial Settings")]
+        [Tooltip("System prompt to set assistant behavior")]
+        [SerializeField] private string initialPrompt = "Act as a helpful assistant.";
+
         private float contentHeight;
-        private DeepSeekApi deepSeekApi = new DeepSeekApi("YOUR_API_KEY");
+        private DeepSeekApi deepSeekApi;
 
         private List<ChatMessage> messages = new List<ChatMessage>();
-        private string initialPrompt = "Act as a helpful assistant.";
+        
+        // Reference to the current response text component
+        private Text currentResponseText;
+        // Reference to the current message item
+        private RectTransform currentResponseItem;
 
         private void Start()
         {
+            // Initialize API with the provided key
+            deepSeekApi = new DeepSeekApi(apiKey);
+            
             sendButton.onClick.AddListener(SendMessage);
+            
+            // Add system message at initialization
+            messages.Add(new ChatMessage
+            {
+                Role = "system",
+                Content = initialPrompt
+            });
         }
 
         private void AppendMessage(ChatMessage message, bool isUser)
         {
-            chatScroll.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 0);
+            if (isUser || currentResponseItem == null)
+            {
+                // For user messages or new assistant responses, create a new item
+                chatScroll.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 0);
 
-            var item = Instantiate(isUser ? sent : received, chatScroll.content);
-            item.GetChild(0).GetChild(0).GetComponent<Text>().text = message.Content;
-            item.anchoredPosition = new Vector2(0, -contentHeight);
-            LayoutRebuilder.ForceRebuildLayoutImmediate(item);
-            contentHeight += item.sizeDelta.y;
-            chatScroll.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, contentHeight);
-            chatScroll.verticalNormalizedPosition = 0;
+                var item = Instantiate(isUser ? sent : received, chatScroll.content);
+                item.GetChild(0).GetChild(0).GetComponent<Text>().text = message.Content;
+                item.anchoredPosition = new Vector2(0, -contentHeight);
+                LayoutRebuilder.ForceRebuildLayoutImmediate(item);
+                contentHeight += item.sizeDelta.y;
+                chatScroll.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, contentHeight);
+                chatScroll.verticalNormalizedPosition = 0;
+
+                // If this is a new assistant response, save references for streaming updates
+                if (!isUser)
+                {
+                    currentResponseItem = item;
+                    currentResponseText = item.GetChild(0).GetChild(0).GetComponent<Text>();
+                }
+            }
+            else
+            {
+                // For streaming updates to an existing assistant response
+                currentResponseText.text = message.Content;
+                
+                // Recalculate height for the updated content
+                LayoutRebuilder.ForceRebuildLayoutImmediate(currentResponseItem);
+                
+                // Update content height and scroll position
+                contentHeight = 0;
+                for (int i = 0; i < chatScroll.content.childCount; i++)
+                {
+                    var child = chatScroll.content.GetChild(i) as RectTransform;
+                    contentHeight += child.sizeDelta.y;
+                }
+                chatScroll.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, contentHeight);
+                chatScroll.verticalNormalizedPosition = 0;
+            }
+        }
+
+        private void HandleStreamingResponse(ChatMessage partialMessage, bool isDone)
+        {
+            // Update UI with the partial response
+            AppendMessage(partialMessage, false);
+            
+            // If streaming is complete, add the final message to our history
+            if (isDone)
+            {
+                messages.Add(partialMessage);
+                currentResponseItem = null;
+                currentResponseText = null;
+            }
         }
 
         private async void SendMessage()
         {
+            string userText = inputField.text.Trim();
+            if (string.IsNullOrEmpty(userText))
+            {
+                return; // Don't send empty messages
+            }
+            
             var userMessage = new ChatMessage
             {
                 Role = "user",
-                Content = inputField.text
+                Content = userText
             };
             AppendMessage(userMessage, true);
             messages.Add(userMessage);
 
             var request = new ChatCompletionRequest
             {
-                Model = "deepseek-r1",
+                // Use the selected model
+                Model = modelType.ToModelString(),
                 Messages = messages,
-                Temperature = 0.7f
+                Temperature = temperature,
+                Stream = useStreaming // Use the streaming setting
             };
 
-            var response = await deepSeekApi.CreateChatCompletion(request);
-            if (response?.Choices != null && response.Choices.Count > 0)
-            {
-                var assistantMessage = response.Choices[0].Message;
-                messages.Add(assistantMessage);
-                AppendMessage(assistantMessage, false);
-            }
-            else
-            {
-                Debug.LogWarning("No response from DeepSeek.");
-            }
+            // Show loading indicator or disable input while waiting
+            inputField.interactable = false;
+            sendButton.interactable = false;
 
-            inputField.text = "";
+            try
+            {
+                // Clear current response references for the new response
+                currentResponseItem = null;
+                currentResponseText = null;
+                
+                if (useStreaming)
+                {
+                    // Start with an empty placeholder response for streaming
+                    var initialResponse = new ChatMessage 
+                    { 
+                        Role = "assistant", 
+                        Content = "" 
+                    };
+                    AppendMessage(initialResponse, false);
+                    
+                    // Use streaming API
+                    await deepSeekApi.CreateChatCompletionStreaming(request, HandleStreamingResponse);
+                }
+                else
+                {
+                    // Use non-streaming API
+                    var response = await deepSeekApi.CreateChatCompletion(request);
+                    
+                    if (response != null && response.Choices != null && response.Choices.Count > 0)
+                    {
+                        var assistantMessage = response.Choices[0].Message;
+                        AppendMessage(assistantMessage, false);
+                        messages.Add(assistantMessage);
+                    }
+                    else
+                    {
+                        // Handle the case where we got a null or empty response
+                        var errorMessage = new ChatMessage
+                        {
+                            Role = "assistant",
+                            Content = "Sorry, I couldn't get a response. Please try again."
+                        };
+                        AppendMessage(errorMessage, false);
+                        messages.Add(errorMessage);
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error in SendMessage: {ex.Message}");
+                // Option: Show error message to user
+                var errorMessage = new ChatMessage
+                {
+                    Role = "assistant",
+                    Content = "Sorry, I couldn't get a response. Please try again."
+                };
+                AppendMessage(errorMessage, false);
+                messages.Add(errorMessage);
+            }
+            finally
+            {
+                // Re-enable input controls
+                inputField.interactable = true;
+                sendButton.interactable = true;
+                inputField.text = "";
+                inputField.ActivateInputField();
+            }
         }
     }
 }
