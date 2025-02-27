@@ -357,7 +357,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1502393754060502261, guid: 43fc2f8907aabeb49bae0de9e65d442c, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -0.0000023841858
+      value: -0.000017166138
       objectReference: {fileID: 0}
     - target: {fileID: 5260928468754106139, guid: 43fc2f8907aabeb49bae0de9e65d442c, type: 3}
       propertyPath: m_Pivot.x
@@ -440,10 +440,6 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8454059284046321374, guid: 43fc2f8907aabeb49bae0de9e65d442c, type: 3}
-      propertyPath: m_Size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8454059284046321374, guid: 43fc2f8907aabeb49bae0de9e65d442c, type: 3}
       propertyPath: m_Value
       value: 1
       objectReference: {fileID: 0}
@@ -465,14 +461,6 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 919346646962642266, guid: 467f6d65d19c6f9418da7654af185dc3, type: 3}
-      propertyPath: apiKey
-      value: YOUR-DEEPSEEK-API-KEY
-      objectReference: {fileID: 0}
-    - target: {fileID: 919346646962642266, guid: 467f6d65d19c6f9418da7654af185dc3, type: 3}
-      propertyPath: modelType
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 919346646962642266, guid: 467f6d65d19c6f9418da7654af185dc3, type: 3}
       propertyPath: chatScroll
       value: 
       objectReference: {fileID: 1902988348254060731}
@@ -484,10 +472,6 @@ PrefabInstance:
       propertyPath: sendButton
       value: 
       objectReference: {fileID: 8198368753622623512}
-    - target: {fileID: 919346646962642266, guid: 467f6d65d19c6f9418da7654af185dc3, type: 3}
-      propertyPath: initialPrompt
-      value: Act as a helpful assistant.
-      objectReference: {fileID: 0}
     - target: {fileID: 2225606256071265505, guid: 467f6d65d19c6f9418da7654af185dc3, type: 3}
       propertyPath: m_Name
       value: DeepSeekChat

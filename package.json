@@ -8,8 +8,7 @@
   "changelogUrl": "https://github.com/yagizeraslan/DeepSeek-Unity/blob/main/CHANGELOG.md",
   "licensesUrl": "https://github.com/yagizeraslan/DeepSeek-Unity/blob/main/LICENSE",
   "dependencies": {
-    "com.unity.textmeshpro": "3.0.6",
-    "com.unity.nuget.newtonsoft-json": "3.0.2"
+    "com.unity.textmeshpro": "3.0.6"
   },
   "keywords": [
     "deepseek",

@@ -10,27 +10,27 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 8660877164071420326, guid: 53cd26a6eefa5a74086203cd118a04d3, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8660877164071420326, guid: 53cd26a6eefa5a74086203cd118a04d3, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8660877164071420326, guid: 53cd26a6eefa5a74086203cd118a04d3, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 828
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8660877164071420326, guid: 53cd26a6eefa5a74086203cd118a04d3, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 21.866669
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8660877164071420326, guid: 53cd26a6eefa5a74086203cd118a04d3, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 8
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8660877164071420326, guid: 53cd26a6eefa5a74086203cd118a04d3, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -8
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8660877164071420327, guid: 53cd26a6eefa5a74086203cd118a04d3, type: 3}
       propertyPath: m_Color.b
@@ -146,23 +146,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8660877165096916448, guid: 53cd26a6eefa5a74086203cd118a04d3, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8660877165096916448, guid: 53cd26a6eefa5a74086203cd118a04d3, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8660877165096916448, guid: 53cd26a6eefa5a74086203cd118a04d3, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 844
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8660877165096916448, guid: 53cd26a6eefa5a74086203cd118a04d3, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 37.86667
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8660877165096916448, guid: 53cd26a6eefa5a74086203cd118a04d3, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 100
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8660877165096916454, guid: 53cd26a6eefa5a74086203cd118a04d3, type: 3}
       propertyPath: m_Color.b

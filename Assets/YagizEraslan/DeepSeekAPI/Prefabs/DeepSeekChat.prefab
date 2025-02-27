@@ -51,6 +51,6 @@ MonoBehaviour:
   received: {fileID: 961534450149497043, guid: adc0146c2853ed1418133faaf4379eb1, type: 3}
   apiKey: YOUR-DEEPSEEK-API-KEY
   useStreaming: 1
-  modelType: 1
+  modelType: 0
   temperature: 0.7
-  initialPrompt: 
+  initialPrompt: Act as a helpful assistant.

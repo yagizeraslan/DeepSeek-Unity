@@ -37,7 +37,7 @@ namespace YagizEraslan.DeepSeek
         private List<ChatMessage> messages = new List<ChatMessage>();
         
         // Reference to the current response text component
-        private Text currentResponseText;
+        private TextMeshProUGUI currentResponseText;
         // Reference to the current message item
         private RectTransform currentResponseItem;
 
@@ -64,7 +64,7 @@ namespace YagizEraslan.DeepSeek
                 chatScroll.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 0);
 
                 var item = Instantiate(isUser ? sent : received, chatScroll.content);
-                item.GetChild(0).GetChild(0).GetComponent<Text>().text = message.content;
+                item.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text = message.content;
                 item.anchoredPosition = new Vector2(0, -contentHeight);
                 LayoutRebuilder.ForceRebuildLayoutImmediate(item);
                 contentHeight += item.sizeDelta.y;
@@ -75,7 +75,7 @@ namespace YagizEraslan.DeepSeek
                 if (!isUser)
                 {
                     currentResponseItem = item;
-                    currentResponseText = item.GetChild(0).GetChild(0).GetComponent<Text>();
+                    currentResponseText = item.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>();
                 }
             }
             else
