@@ -170,7 +170,8 @@ You can customize the appearance of the chat interface by modifying the prefab o
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This is an unofficial integration not affiliated with or endorsed by DeepSeek.
+DeepSeek is a trademark of Hangzhou DeepSeek Artificial Intelligence Co., Ltd.
 
 ## Acknowledgements
 
