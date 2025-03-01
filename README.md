@@ -1,6 +1,6 @@
 # Unity DeepSeek API Integration
 
-⚠️ This is an un official integration not affiliated with or endorsed by DeepSeek.
+⚠️ This is an unofficial integration not affiliated with or endorsed by DeepSeek.
 
 A lightweight, easy-to-use integration of the DeepSeek AI API for Unity projects. This package allows Unity developers to quickly implement AI-powered chat capabilities using DeepSeek's powerful language models.
 
