@@ -182,5 +182,6 @@ DeepSeek is a trademark of Hangzhou DeepSeek Artificial Intelligence Co., Ltd.
 - **Name**: Yağız ERASLAN
 - **Email**: yagizeraslan@gmail.com
 - **LinkedIn**: https://www.linkedin.com/in/yagizeraslan/
+- **WeChat**: yagizeraslan
 
 If you have any questions, suggestions, or issues, please feel free to contact me or open an issue on GitHub.
