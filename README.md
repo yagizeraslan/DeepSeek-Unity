@@ -17,7 +17,7 @@ A lightweight, easy-to-use integration of the DeepSeek AI API for Unity projects
 
 - Unity 2020.3 LTS or newer
 - TextMeshPro package (included in newer Unity versions)
-- DeepSeek API key (obtain from [DeepSeek's website](https://www.deepseek.com/)
+- DeepSeek API key (obtain from [DeepSeek's website](https://platform.deepseek.com/))
 
 ## Installation
 
