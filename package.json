@@ -4,6 +4,7 @@
   "displayName": "DeepSeek API for Unity",
   "description": "A lightweight, easy-to-use integration of the DeepSeek AI API for Unity projects.",
   "unity": "2020.3",
+  "type": "library",
   "documentationUrl": "https://github.com/yagizeraslan/DeepSeek-Unity/blob/main/README.md",
   "changelogUrl": "https://github.com/yagizeraslan/DeepSeek-Unity/blob/main/CHANGELOG.md",
   "licensesUrl": "https://github.com/yagizeraslan/DeepSeek-Unity/blob/main/LICENSE",
