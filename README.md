@@ -20,6 +20,26 @@
 
 ---
 
+### 🧩 Supported Platforms & Unity Versions
+
+| Platform | Unity 2020.3 | Unity 2021 | Unity 2022 | Unity 6 | Notes |
+| --- | --- | --- | --- | --- | --- |
+| **Windows** | ✅ | ✅ | ✅ | ✅ | Fully supported (tested with IL2CPP & Mono) |
+| **Android** | ✅ | ✅ | ✅ | ✅ | Requires internet permission in manifest |
+| **WebGL** | ⚠️ *Partial* | ⚠️ *Partial* | ✅ | ✅ | Streaming unsupported; add CORS headers on server |
+| **Linux** | ❓ | ❓ | ❓ | ❓ | Likely works, but not yet tested |
+| **macOS** | ❓ | ❓ | ❓ | ❓ | Not tested, expected to work |
+| **iOS** | ❓ | ❓ | ❓ | ❓ | Not tested, expected to work (HTTPS required) |
+| **Consoles** | ❌ | ❌ | ❌ | ❌ | Not supported (Unity license + network limitations) |
+
+> ❓ = Not tested yet — expected to work but needs verification
+> 
+> 
+> ⚠️ = Partial support (some limitations)
+>
+
+---
+
 ## 🧰 Requirements
 
 - Unity 2020.3 LTS or newer
