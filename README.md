@@ -37,11 +37,9 @@
 3. Click `+` → **Add package from Git URL**
 4. Paste:
     
-    ```
-    arduino
-    CopyEdit
+    ```csharp
     https://github.com/yagizeraslan/DeepSeek-Unity.git
-    
+
     ```
     
 5. Click **Add**
@@ -73,11 +71,9 @@ To test everything:
 2. Click **Import** on `DeepSeek Chat Example`
 3. Open:
     
-    ```
-    swift
-    CopyEdit
+    ```csharp
     Assets/Samples/DeepSeek API for Unity/1.0.0/DeepSeek Chat Example/Scenes/DeepSeek-Chat.unity
-    
+
     ```
     
 4. Press Play — you're live.
@@ -109,8 +105,6 @@ To test everything:
 ## 🧩 Example Integration
 
 ```csharp
-csharp
-CopyEdit
 [SerializeField] private DeepSeekSettings config;
 
 void Start()
@@ -143,8 +137,6 @@ Use `CreateChatCompletionStreaming` with a callback for partial updates. (Docs c
 ### 💬 Multiple Models
 
 ```csharp
-csharp
-CopyEdit
 DeepSeekModel.DeepSeekChat
 DeepSeekModel.DeepSeekR1
 
