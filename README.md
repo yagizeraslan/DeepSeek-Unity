@@ -1,187 +1,185 @@
-# Unity DeepSeek API Integration
+# 🧠 DeepSeek API for Unity
 
-⚠️ This is an unofficial integration not affiliated with or endorsed by DeepSeek.
+> 💬 A clean, modular Unity integration for DeepSeek's powerful LLMs — chat, reasoning, and task automation made easy.
+> 
 
-A lightweight, easy-to-use integration of the DeepSeek AI API for Unity projects. This package allows Unity developers to quickly implement AI-powered chat capabilities using DeepSeek's powerful language models.
+⚠️ **Note**: This is an unofficial integration not affiliated with or endorsed by DeepSeek.
 
-## Features
+---
 
-- 🚀 Easy integration with DeepSeek API in Unity projects
-- 💬 Support for both streaming and non-streaming chat completions
-- 🔄 Compatible with multiple DeepSeek models (DeepSeek Chat, DeepSeek Reasoner)
-- 🎮 Ready-to-use UI components for chat interactions
-- ⚙️ Customizable API settings through the Unity Inspector
-- 📱 Works on all platforms supported by Unity
+## ✨ Features
 
-## Requirements
+- ✅ Clean, reusable SDK for DeepSeek API
+- 🔄 Supports both streaming and non-streaming chat completions
+- 🧠 Compatible with multiple models (DeepSeek Chat, Reasoner)
+- 🎨 Modular & customizable UI chat component
+- 🔐 Secure API key storage (runtime-safe)
+- ⚙️ Built with Unity Package Manager (UPM)
+- 🧪 Includes sample scene & prefabs
+- 📦 Asset Store and GitHub ready
+
+---
+
+## 🧰 Requirements
 
 - Unity 2020.3 LTS or newer
-- TextMeshPro package (included in newer Unity versions)
-- DeepSeek API key (obtain from [DeepSeek's website](https://platform.deepseek.com/))
+- TextMeshPro (via Package Manager)
+- DeepSeek API Key from [platform.deepseek.com](https://platform.deepseek.com/)
 
-## Installation
+---
 
-### Option 1: Unity Package Manager (Git URL)
+## 📦 Installation
+
+### Option 1: Via Git URL (Unity Package Manager)
 
 1. Open your Unity project
-2. Go to Window > Package Manager
-3. Click the "+" button in the top-left corner
-4. Select "Add package from git URL..."
-5. Enter the repository URL: `https://github.com/yagizeraslan/DeepSeek-Unity.git`
-6. Click "Add"
+2. Go to **Window > Package Manager**
+3. Click `+` → **Add package from Git URL**
+4. Paste:
+    
+    ```
+    arduino
+    CopyEdit
+    https://github.com/yagizeraslan/DeepSeek-Unity.git
+    
+    ```
+    
+5. Click **Add**
 
-### Option 2: Manual Installation
+### Option 2: From Unity Asset Store *(Coming Soon)*
 
-1. Download or clone this repository
-2. Copy the `DeepSeek` folder into your Unity project's `Assets` folder
+- Search for **"DeepSeek API for Unity"**
+- Import into your project
 
-### Option 3: Unity Asset Store
+---
 
-1. Open the Unity Asset Store in your browser or through Unity
-2. Search for "DeepSeek API Integration"
-3. Purchase or download the package
-4. Import the package into your project
+## 🚀 Getting Started
 
-## Quick Start
+### 🔧 Setup
 
-1. Add the `DeepSeekChat` prefab to your scene
-2. Enter your DeepSeek API key in the Inspector
-3. Customize the chat appearance and behavior through the Inspector
-4. Press Play to start testing
+1. Go to `DeepSeek > Settings` in Unity’s top menu bar
+2. Paste your **API key** into the editor window (dev-only)
+3. (Optional) Create a `DeepSeekSettings` asset to store your key securely for runtime builds
+4. Drag the `DeepSeekChat` prefab from the sample into your scene
+5. Hit Play — and chat with DeepSeek AI in seconds 💬
 
-## Example Usage
+---
 
-### Basic Chat Implementation
+## 🧪 Sample Scene
+
+To test everything:
+
+1. In **Package Manager**, under **DeepSeek API for Unity**, click **Samples**
+2. Click **Import** on `DeepSeek Chat Example`
+3. Open:
+    
+    ```
+    swift
+    CopyEdit
+    Assets/Samples/DeepSeek API for Unity/1.0.0/DeepSeek Chat Example/Scenes/DeepSeek-Chat.unity
+    
+    ```
+    
+4. Press Play — you're live.
+
+---
+
+## 🔐 API Key Handling
+
+- During dev: Store key via `EditorPrefs` using the DeepSeek Editor Window
+- In production builds: Use the `DeepSeekSettings` ScriptableObject (recommended)
+
+**DO NOT** hardcode your key in scripts or prefabs — Unity will reject the package.
+
+---
+
+## 🧱 Architecture Overview
+
+| Layer | Folder | Role |
+| --- | --- | --- |
+| API Logic | `Runtime/API/` | HTTP & model logic |
+| Data Models | `Runtime/Data/` | DTOs for requests/responses |
+| UI Component | `Runtime/UI/` | MonoBehaviour & Controller |
+| Config Logic | `Runtime/Common/` | Secure key storage |
+| Editor Tools | `Editor/` | Editor-only settings UI |
+| Example Scene | `Samples~/` | Demo prefab, scene, assets |
+
+---
+
+## 🧩 Example Integration
 
 ```csharp
-using UnityEngine;
-using DeepSeek;
+csharp
+CopyEdit
+[SerializeField] private DeepSeekSettings config;
 
-public class DeepSeekExample : MonoBehaviour
+void Start()
 {
-    [SerializeField] private string apiKey = "YOUR-API-KEY";
-    private DeepSeekApi deepSeekApi;
-    
-    private void Start()
-    {
-        // Initialize the API
-        deepSeekApi = new DeepSeekApi(apiKey);
-        
-        // Send a simple request
-        SendSimpleMessage();
-    }
-    
-    private async void SendSimpleMessage()
-    {
-        var request = new ChatCompletionRequest
-        {
-            Model = DeepSeekModel.DeepSeekV3.ToModelString(),
-            Messages = new System.Collections.Generic.List<ChatMessage>
-            {
-                new ChatMessage { Role = "system", Content = "You are a helpful assistant." },
-                new ChatMessage { Role = "user", Content = "Hello, who are you?" }
-            },
-            Temperature = 0.7f,
-            Stream = false
-        };
-        
-        var response = await deepSeekApi.CreateChatCompletion(request);
-        
-        if (response != null && response.Choices != null && response.Choices.Count > 0)
-        {
-            Debug.Log("DeepSeek Response: " + response.Choices[0].Message.Content);
-        }
-    }
-}
-```
-
-### Streaming Response Example
-
-```csharp
-private async void SendStreamingMessage()
-{
+    var api = new DeepSeekApi(config);
     var request = new ChatCompletionRequest
     {
-        Model = DeepSeekModel.DeepSeekV3.ToModelString(),
-        Messages = new System.Collections.Generic.List<ChatMessage>
+        model = DeepSeekModel.DeepSeekChat.ToModelString(),
+        messages = new List<ChatMessage>
         {
-            new ChatMessage { Role = "system", Content = "You are a helpful assistant." },
-            new ChatMessage { Role = "user", Content = "Write a short story about a robot." }
-        },
-        Temperature = 0.7f,
-        Stream = true
+            new ChatMessage { role = "system", content = "You're a helpful assistant." },
+            new ChatMessage { role = "user", content = "Tell me something cool." }
+        }
     };
-    
-    await deepSeekApi.CreateChatCompletionStreaming(request, HandleStreamingResponse);
+
+    var response = await api.CreateChatCompletion(request);
+    Debug.Log(response.choices[0].message.content);
 }
 
-private void HandleStreamingResponse(ChatMessage partialMessage, bool isDone)
-{
-    // Update UI with partial response
-    Debug.Log("Partial response: " + partialMessage.Content);
-    
-    if (isDone)
-    {
-        Debug.Log("Streaming complete!");
-    }
-}
 ```
 
-## Advanced Configuration
+---
 
-### Available Models
+## 🛠 Advanced Usage
 
-The integration supports multiple DeepSeek models:
+### 🔄 Streaming Support
+
+Use `CreateChatCompletionStreaming` with a callback for partial updates. (Docs coming soon)
+
+### 💬 Multiple Models
 
 ```csharp
-// Use DeepSeek Chat
-var model = DeepSeekModel.DeepSeekV3;
+csharp
+CopyEdit
+DeepSeekModel.DeepSeekChat
+DeepSeekModel.DeepSeekR1
 
-// Use DeepSeek Reasoner
-var model = DeepSeekModel.DeepSeekR1;
 ```
 
-### Customizing Chat UI
+---
 
-You can customize the appearance of the chat interface by modifying the prefab or the UI components in your scene:
+## 🐞 Troubleshooting
 
-1. Select the DeepSeekChat GameObject in your scene
-2. Modify properties in the Inspector:
-   - Chat scroll view height and width
-   - Message bubble appearance
-   - Input field size and position
-   - Font styles and colors
+**Can't add component?**
 
-## Troubleshooting
+→ Make sure you dragged `DeepSeekSettings` into the prefab or scene object.
 
-### Common Issues
+**Meta file warnings?**
 
-**API Key Not Working**
-- Ensure your API key is correctly entered in the Inspector
-- Check DeepSeek's website to verify your API key is active
+→ Fixed by including `.meta` files in the UPM package (already handled ✅)
 
-**Slow Response Times**
-- Consider using the streaming API for faster perceived response times
-- Check your network connection
+**Streaming not working?**
 
-**Error Messages**
-- "API Key is required" - Ensure you've added your API key in the Inspector
-- "Request failed" - Check your internet connection and API key validity
+→ Some Unity versions may require extra coroutine-based handling. Coming soon.
 
-## License
+---
 
-This is an unofficial integration not affiliated with or endorsed by DeepSeek.
-DeepSeek is a trademark of Hangzhou DeepSeek Artificial Intelligence Co., Ltd.
+## 📄 License
 
-## Acknowledgements
+Unofficial integration. DeepSeek™ is a trademark of Hangzhou DeepSeek Artificial Intelligence Co., Ltd.
 
-- [DeepSeek](https://www.deepseek.com/) for their powerful AI models
+MIT License.
 
-## Contact
+---
 
-- **Name**: Yağız ERASLAN
-- **Email**: yagizeraslan@gmail.com
-- **LinkedIn**: https://www.linkedin.com/in/yagizeraslan/
-- **WeChat**: yagizeraslan
+## 🤝 Contact & Support
 
-If you have any questions, suggestions, or issues, please feel free to contact me or open an issue on GitHub.
+**Author**: [Yağız ERASLAN](https://www.linkedin.com/in/yagizeraslan/)
+
+📬 yagizeraslan@gmail.com
+
+💬 GitHub Issues welcome!
