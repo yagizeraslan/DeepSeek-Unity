@@ -39,7 +39,7 @@ namespace YagizEraslan.DeepSeek.Unity
                 case DeepSeekModel.DeepSeek_V3:
                     return "deepseek-chat";
                 case DeepSeekModel.DeepSeek_R1:
-                    return "deepseek-r1";
+                    return "deepseek-reasoner";
                 default:
                     return "deepseek-chat"; // fallback
             }

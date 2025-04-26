@@ -13,7 +13,7 @@ namespace YagizEraslan.DeepSeek.Unity
             return model switch
             {
                 DeepSeekModel.DeepSeek_V3 => "deepseek-chat",
-                DeepSeekModel.DeepSeek_R1 => "deepseek-r1",
+                DeepSeekModel.DeepSeek_R1 => "deepseek-reasoner",
                 _ => "deepseek-chat"
             };
         }
