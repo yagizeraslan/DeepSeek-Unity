@@ -8,7 +8,8 @@ namespace YagizEraslan.DeepSeek.Unity
     {
         [Header("DeepSeek Configuration")]
         [SerializeField] private DeepSeekSettings deepSeekAPISettings;
-        [SerializeField] private DeepSeekModelType modelType = DeepSeekModelType.DeekSeek-V3;
+
+        [SerializeField] private DeepSeekModelType modelType = DeepSeekModelType.DeepSeek_V3;
 
         [Header("UI Elements")]
         [SerializeField] private TMP_InputField inputField;
@@ -34,9 +35,9 @@ namespace YagizEraslan.DeepSeek.Unity
         {
             switch (modelType)
             {
-                case DeepSeekModelType.DeekSeek-V3:
+                case DeepSeekModelType.DeekSeek_V3:
                     return "deepseek-chat";
-                case DeepSeekModelType.DeekSeek-R1:
+                case DeepSeekModelType.DeekSeek_R1:
                     return "deepseek-r1";
                 default:
                     return "deepseek-chat"; // fallback
