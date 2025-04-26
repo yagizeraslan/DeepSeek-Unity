@@ -7,13 +7,22 @@ public static class DeepSeekSetupWizard
 {
     static DeepSeekSetupWizard()
     {
-        EditorApplication.update += ShowSetupWizard;
+        EditorApplication.update += TryShowSetupWizard;
     }
 
-    private static void ShowSetupWizard()
+    private static void TryShowSetupWizard()
     {
-        EditorApplication.update -= ShowSetupWizard;
-        DeepSeekSetupWindow.ShowWindow();
+        EditorApplication.update -= TryShowSetupWizard;
+
+        if (!IsUniTaskInstalled())
+        {
+            DeepSeekSetupWindow.ShowWindow();
+        }
+    }
+
+    private static bool IsUniTaskInstalled()
+    {
+        return Directory.Exists(Path.Combine("Packages", "com.cysharp.unitask"));
     }
 }
 
@@ -21,13 +30,18 @@ public class DeepSeekSetupWindow : EditorWindow
 {
     private static bool isUniTaskInstalled;
 
-    [MenuItem("DeepSeek/Install UniTask")]
+    [MenuItem("DeepSeek/Install UniTask Manually")]
     public static void InstallUniTaskManually()
     {
         InstallUniTask();
     }
 
     [MenuItem("DeepSeek/Setup Wizard")]
+    public static void OpenSetupWizard()
+    {
+        ShowWindow();
+    }
+
     public static void ShowWindow()
     {
         var window = GetWindow<DeepSeekSetupWindow>("DeepSeek Setup Wizard");
