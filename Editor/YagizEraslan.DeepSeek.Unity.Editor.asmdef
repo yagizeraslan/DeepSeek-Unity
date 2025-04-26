@@ -1,11 +1,12 @@
 {
-  "name": "YagizEraslan.DeepSeek.Unity.Runtime",
-  "references": [],
-  "optionalUnityReferences": [
-    "TextMeshPro",
-    "UnityEngine.UI"
+  "name": "YagizEraslan.DeepSeek.Unity.Editor",
+  "references": [
+    "YagizEraslan.DeepSeek.Unity.Runtime"
   ],
-  "includePlatforms": [],
+  "optionalUnityReferences": [],
+  "includePlatforms": [
+    "Editor"
+  ],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
   "overrideReferences": false,
