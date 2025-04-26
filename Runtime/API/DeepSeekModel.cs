@@ -2,8 +2,8 @@ namespace YagizEraslan.DeepSeek.Unity
 {
     public enum DeepSeekModel
     {
-        DeepSeekChat,
-        DeepSeekR1
+        DeepSeek-V3,
+        DeepSeek-R1
     }
 
     public static class DeepSeekModelExtensions
@@ -12,8 +12,8 @@ namespace YagizEraslan.DeepSeek.Unity
         {
             return model switch
             {
-                DeepSeekModel.DeepSeekChat => "deepseek-chat",
-                DeepSeekModel.DeepSeekR1 => "deepseek-r1",
+                DeepSeekModel.DeepSeek-V3 => "deepseek-chat",
+                DeepSeekModel.DeepSeek-R1 => "deepseek-r1",
                 _ => "deepseek-chat"
             };
         }

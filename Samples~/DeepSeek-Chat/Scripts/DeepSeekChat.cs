@@ -6,24 +6,52 @@ namespace YagizEraslan.DeepSeek.Unity
 {
     public class DeepSeekChat : MonoBehaviour
     {
-        [SerializeField] private DeepSeekSettings config;
+        [Header("DeepSeek Configuration")]
+        [SerializeField] private DeepSeekSettings deepSeekAPISettings;
+        [SerializeField] private DeepSeekModelType modelType = DeepSeekModelType.DeekSeek-V3;
+
+        [Header("UI Elements")]
         [SerializeField] private TMP_InputField inputField;
         [SerializeField] private Button sendButton;
-        [SerializeField] private RectTransform sentMessagePrefab, receivedMessagePrefab;
+        [SerializeField] private RectTransform sentMessagePrefab;
+        [SerializeField] private RectTransform receivedMessagePrefab;
         [SerializeField] private Transform messageContainer;
 
         private DeepSeekChatController controller;
 
-        void Start()
+        private void Start()
         {
-            controller = new DeepSeekChatController(new DeepSeekApi(config), AddMessageToUI);
-            sendButton.onClick.AddListener(() => controller.SendUserMessage(inputField.text));
+            var api = new DeepSeekApi(deepSeekAPISettings);
+            controller = new DeepSeekChatController(api, GetSelectedModelName(), AddMessageToUI);
+
+            sendButton.onClick.AddListener(() =>
+            {
+                controller.SendUserMessage(inputField.text);
+            });
+        }
+
+        private string GetSelectedModelName()
+        {
+            switch (modelType)
+            {
+                case DeepSeekModelType.DeekSeek-V3:
+                    return "deepseek-chat";
+                case DeepSeekModelType.DeekSeek-R1:
+                    return "deepseek-r1";
+                default:
+                    return "deepseek-chat"; // fallback
+            }
         }
 
         private void AddMessageToUI(ChatMessage message, bool isUser)
         {
-            RectTransform prefab = isUser ? sentMessagePrefab : receivedMessagePrefab;
-            Instantiate(prefab, messageContainer).GetComponentInChildren<TMP_Text>().text = message.content;
+            var prefab = isUser ? sentMessagePrefab : receivedMessagePrefab;
+            var instance = Instantiate(prefab, messageContainer);
+            var textComponent = instance.GetComponentInChildren<TMP_Text>();
+            if (textComponent != null)
+            {
+                textComponent.text = message.content;
+            }
         }
     }
 }
