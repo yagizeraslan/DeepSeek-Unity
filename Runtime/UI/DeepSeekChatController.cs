@@ -1,29 +1,33 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace YagizEraslan.DeepSeek.Unity
 {
     public class DeepSeekChatController
     {
-        private readonly IDeepSeekApi api;
+        private readonly DeepSeekStreamingApi streamingApi;
+        private readonly DeepSeekApi deepSeekApi; // For normal non-streaming fallback
         private readonly List<ChatMessage> history = new();
         private readonly Action<ChatMessage, bool> onMessageUpdate;
         private readonly Action<string> onStreamingUpdate;
         private readonly string selectedModelName;
         private readonly bool useStreaming;
 
+        private string currentStreamContent = "";
+
         public DeepSeekChatController(IDeepSeekApi api, string modelName, Action<ChatMessage, bool> messageCallback, Action<string> streamingCallback, bool useStreaming)
         {
-            this.api = api;
+            this.deepSeekApi = api as DeepSeekApi; // Casting to real implementation
+            this.streamingApi = new DeepSeekStreamingApi(api.GetApiKey()); // Provide API key
             this.selectedModelName = modelName;
             this.onMessageUpdate = messageCallback;
             this.onStreamingUpdate = streamingCallback;
             this.useStreaming = useStreaming;
         }
 
-        public async void SendUserMessage(string userMessage)
+        public void SendUserMessage(string userMessage)
         {
             if (string.IsNullOrWhiteSpace(userMessage))
             {
@@ -47,19 +51,19 @@ namespace YagizEraslan.DeepSeek.Unity
 
             if (useStreaming)
             {
-                await SendStreamingResponse(request);
+                HandleStreamingResponse(request).Forget(); // Start async, no blocking
             }
             else
             {
-                await SendFullResponse(request);
+                HandleFullResponse(request).Forget();
             }
         }
 
-        private async Task SendFullResponse(ChatCompletionRequest request)
+        private async UniTaskVoid HandleFullResponse(ChatCompletionRequest request)
         {
             try
             {
-                var response = await api.CreateChatCompletion(request);
+                var response = await deepSeekApi.CreateChatCompletion(request);
 
                 if (response != null && response.choices != null && response.choices.Length > 0)
                 {
@@ -78,37 +82,29 @@ namespace YagizEraslan.DeepSeek.Unity
             }
         }
 
-        private async Task SendStreamingResponse(ChatCompletionRequest request)
+        private async UniTaskVoid HandleStreamingResponse(ChatCompletionRequest request)
         {
+            currentStreamContent = "";
+
             try
             {
-                var response = await api.CreateChatCompletion(request);
-
-                if (response != null && response.choices != null && response.choices.Length > 0)
-                {
-                    var aiMessage = response.choices[0].message;
-                    string streamedContent = "";
-
-                    onMessageUpdate?.Invoke(new ChatMessage
+                await streamingApi.StreamChatCompletionAsync(
+                    request,
+                    (partialToken) =>
                     {
-                        role = "assistant",
-                        content = streamedContent
-                    }, false);
-
-                    foreach (char c in aiMessage.content)
+                        currentStreamContent += partialToken;
+                        onStreamingUpdate?.Invoke(currentStreamContent);
+                    },
+                    () =>
                     {
-                        streamedContent += c;
-                        onStreamingUpdate?.Invoke(streamedContent);
-
-                        await Task.Delay(30); // Typing speed per character
+                        var finalMessage = new ChatMessage
+                        {
+                            role = "assistant",
+                            content = currentStreamContent
+                        };
+                        history.Add(finalMessage);
                     }
-
-                    history.Add(aiMessage);
-                }
-                else
-                {
-                    Debug.LogWarning("No response choices received for streaming from DeepSeek API.");
-                }
+                );
             }
             catch (Exception ex)
             {

@@ -1,15 +1,16 @@
 {
   "name": "com.yagizeraslan.deepseek",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "DeepSeek API for Unity",
-  "description": "A lightweight, easy-to-use integration of the DeepSeek AI API for Unity projects.",
+  "description": "A lightweight, streaming-supported integration of the DeepSeek AI API for Unity projects.",
   "unity": "2020.3",
   "type": "library",
   "documentationUrl": "https://github.com/yagizeraslan/DeepSeek-Unity/blob/main/README.md",
   "changelogUrl": "https://github.com/yagizeraslan/DeepSeek-Unity/blob/main/CHANGELOG.md",
   "licensesUrl": "https://github.com/yagizeraslan/DeepSeek-Unity/blob/main/LICENSE",
   "dependencies": {
-    "com.unity.textmeshpro": "3.0.6"
+    "com.unity.textmeshpro": "3.0.6",
+    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git#upm"
   },
   "keywords": [
     "deepseek",
@@ -18,7 +19,10 @@
     "chat",
     "language model",
     "llm",
-    "ai assistant"
+    "ai assistant",
+    "streaming",
+    "unitask",
+    "unity async"
   ],
   "author": {
     "name": "Yagiz ERASLAN",

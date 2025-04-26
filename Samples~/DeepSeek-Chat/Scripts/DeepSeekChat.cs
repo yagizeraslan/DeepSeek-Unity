@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using System.Collections;
+using Cysharp.Threading.Tasks;
 
 namespace YagizEraslan.DeepSeek.Unity
 {
@@ -20,7 +20,7 @@ namespace YagizEraslan.DeepSeek.Unity
         [SerializeField] private Transform messageContainer;
 
         private DeepSeekChatController controller;
-        private TMP_Text activeStreamingText; // For live typing
+        private TMP_Text activeStreamingText; // To update during real streaming
 
         private void Start()
         {
