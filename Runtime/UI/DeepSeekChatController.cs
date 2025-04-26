@@ -22,8 +22,13 @@ namespace YagizEraslan.DeepSeek.Unity
 
         public DeepSeekChatController(IDeepSeekApi api, string modelName, Action<ChatMessage, bool> messageCallback, Action<string> streamingCallback, bool useStreaming)
         {
-            this.deepSeekApi = api as DeepSeekApi;
-            this.streamingApi = new DeepSeekStreamingApi(api.GetApiKey());
+            var concreteApi = api as DeepSeekApi;
+            if (concreteApi == null)
+            {
+                Debug.LogError("DeepSeekChatController requires DeepSeekApi instance, not just IDeepSeekApi interface!");
+            }
+            this.deepSeekApi = concreteApi;
+            this.streamingApi = new DeepSeekStreamingApi(concreteApi.ApiKey);
             this.selectedModelName = modelName;
             this.onMessageUpdate = messageCallback;
             this.onStreamingUpdate = streamingCallback;
@@ -74,12 +79,10 @@ namespace YagizEraslan.DeepSeek.Unity
         {
             try
             {
-                var response = deepSeekApi.CreateChatCompletion(request);
-
 #if DEEPSEEK_HAS_UNITASK
-                var awaitedResponse = await response;
+                var awaitedResponse = await deepSeekApi.CreateChatCompletion(request);
 #else
-                var awaitedResponse = response;
+                var awaitedResponse = deepSeekApi.CreateChatCompletion(request).Result;
 #endif
 
                 if (awaitedResponse != null && awaitedResponse.choices != null && awaitedResponse.choices.Length > 0)
