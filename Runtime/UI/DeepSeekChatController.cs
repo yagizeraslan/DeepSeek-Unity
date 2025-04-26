@@ -22,7 +22,7 @@ namespace YagizEraslan.DeepSeek.Unity
 
             var request = new ChatCompletionRequest
             {
-                model = DeepSeekModel.DeepSeekChat.ToModelString(),
+                model = DeepSeekModel.DeepSeek_V3.ToModelString(),
                 messages = history
             };
 
