@@ -1,12 +1,17 @@
-using System;
-using System.Text;
+#if DEEPSEEK_HAS_UNITASK
 using Cysharp.Threading.Tasks;
+#endif
+
 using UnityEngine;
 using UnityEngine.Networking;
+using System;
+using System.Text;
+using System.IO;
 using System.Collections.Generic;
 
 namespace YagizEraslan.DeepSeek.Unity
 {
+#if DEEPSEEK_HAS_UNITASK
     public class DeepSeekStreamingApi
     {
         private readonly string apiKey;
@@ -19,7 +24,7 @@ namespace YagizEraslan.DeepSeek.Unity
 
         public async UniTask StreamChatCompletionAsync(ChatCompletionRequest request, Action<string> onPartialMessage, Action onComplete)
         {
-            request.stream = true; // Force real streaming enabled
+            request.stream = true;
 
             string jsonBody = JsonUtility.ToJson(request);
 
@@ -31,10 +36,9 @@ namespace YagizEraslan.DeepSeek.Unity
                 www.SetRequestHeader("Content-Type", "application/json");
                 www.SetRequestHeader("Authorization", $"Bearer {apiKey}");
 
-                var operation = await www.SendWebRequest().ToUniTask();
+                await www.SendWebRequest().ToUniTask();
 
 #if UNITY_WEBGL
-                // WebGL fallback: full response at once
                 if (www.result != UnityWebRequest.Result.Success)
                 {
                     Debug.LogError($"Streaming request failed: {www.error}");
@@ -42,11 +46,9 @@ namespace YagizEraslan.DeepSeek.Unity
                 }
 
                 var fullResponse = www.downloadHandler.text;
-                // Here you might parse the whole response (simulate streaming)
                 onPartialMessage?.Invoke(fullResponse);
                 onComplete?.Invoke();
 #else
-                // Desktop/Mobile: try to stream properly
                 if (www.result != UnityWebRequest.Result.Success)
                 {
                     Debug.LogError($"Streaming request failed: {www.error}");
@@ -108,4 +110,13 @@ namespace YagizEraslan.DeepSeek.Unity
             public string content;
         }
     }
+#else
+    public class DeepSeekStreamingApi
+    {
+        public DeepSeekStreamingApi(string apiKey)
+        {
+            Debug.LogError("UniTask not installed. Please install it via DeepSeek Setup Wizard.");
+        }
+    }
+#endif
 }

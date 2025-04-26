@@ -26,6 +26,7 @@ namespace YagizEraslan.DeepSeek.Unity.Editor
                     "Cancel"))
                 {
                     AddUniTaskToManifest();
+                    AddDefineSymbol();
                 }
             }
 
@@ -58,7 +59,6 @@ namespace YagizEraslan.DeepSeek.Unity.Editor
 
             string manifestContent = File.ReadAllText(manifestPath);
 
-            // Find the "dependencies" section and insert UniTask
             int dependenciesIndex = manifestContent.IndexOf("\"dependencies\": {");
 
             if (dependenciesIndex == -1)
@@ -78,6 +78,19 @@ namespace YagizEraslan.DeepSeek.Unity.Editor
             Debug.Log("UniTask has been added to manifest.json. Unity will now refresh.");
 
             AssetDatabase.Refresh();
+        }
+
+        private static void AddDefineSymbol()
+        {
+            var buildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
+            var symbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+
+            if (!symbols.Contains("DEEPSEEK_HAS_UNITASK"))
+            {
+                symbols += ";DEEPSEEK_HAS_UNITASK";
+                PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, symbols);
+                Debug.Log("Added scripting define: DEEPSEEK_HAS_UNITASK");
+            }
         }
     }
 }

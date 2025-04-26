@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
+
+#if DEEPSEEK_HAS_UNITASK
+using Cysharp.Threading.Tasks;
+#endif
 
 namespace YagizEraslan.DeepSeek.Unity
 {
     public class DeepSeekChatController
     {
         private readonly DeepSeekStreamingApi streamingApi;
-        private readonly DeepSeekApi deepSeekApi; // For normal non-streaming fallback
+        private readonly DeepSeekApi deepSeekApi;
         private readonly List<ChatMessage> history = new();
         private readonly Action<ChatMessage, bool> onMessageUpdate;
         private readonly Action<string> onStreamingUpdate;
@@ -19,8 +22,8 @@ namespace YagizEraslan.DeepSeek.Unity
 
         public DeepSeekChatController(IDeepSeekApi api, string modelName, Action<ChatMessage, bool> messageCallback, Action<string> streamingCallback, bool useStreaming)
         {
-            this.deepSeekApi = api as DeepSeekApi; // Casting to real implementation
-            this.streamingApi = new DeepSeekStreamingApi(api.GetApiKey()); // Provide API key
+            this.deepSeekApi = api as DeepSeekApi;
+            this.streamingApi = new DeepSeekStreamingApi(api.GetApiKey());
             this.selectedModelName = modelName;
             this.onMessageUpdate = messageCallback;
             this.onStreamingUpdate = streamingCallback;
@@ -49,25 +52,39 @@ namespace YagizEraslan.DeepSeek.Unity
                 messages = history
             };
 
+#if DEEPSEEK_HAS_UNITASK
             if (useStreaming)
             {
-                HandleStreamingResponse(request).Forget(); // Start async, no blocking
+                HandleStreamingResponse(request).Forget();
             }
             else
             {
                 HandleFullResponse(request).Forget();
             }
+#else
+            HandleFullResponse(request);
+#endif
         }
 
+#if DEEPSEEK_HAS_UNITASK
         private async UniTaskVoid HandleFullResponse(ChatCompletionRequest request)
+#else
+        private void HandleFullResponse(ChatCompletionRequest request)
+#endif
         {
             try
             {
-                var response = await deepSeekApi.CreateChatCompletion(request);
+                var response = deepSeekApi.CreateChatCompletion(request);
 
-                if (response != null && response.choices != null && response.choices.Length > 0)
+#if DEEPSEEK_HAS_UNITASK
+                var awaitedResponse = await response;
+#else
+                var awaitedResponse = response;
+#endif
+
+                if (awaitedResponse != null && awaitedResponse.choices != null && awaitedResponse.choices.Length > 0)
                 {
-                    var aiMessage = response.choices[0].message;
+                    var aiMessage = awaitedResponse.choices[0].message;
                     history.Add(aiMessage);
                     onMessageUpdate?.Invoke(aiMessage, false);
                 }
@@ -82,6 +99,7 @@ namespace YagizEraslan.DeepSeek.Unity
             }
         }
 
+#if DEEPSEEK_HAS_UNITASK
         private async UniTaskVoid HandleStreamingResponse(ChatCompletionRequest request)
         {
             currentStreamContent = "";
@@ -111,5 +129,6 @@ namespace YagizEraslan.DeepSeek.Unity
                 Debug.LogError($"Error during streaming response from DeepSeek API: {ex.Message}");
             }
         }
+#endif
     }
 }
