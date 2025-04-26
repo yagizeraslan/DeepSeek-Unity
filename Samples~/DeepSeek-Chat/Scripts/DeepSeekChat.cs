@@ -7,9 +7,9 @@ namespace YagizEraslan.DeepSeek.Unity
     public class DeepSeekChat : MonoBehaviour
     {
         [Header("DeepSeek Configuration")]
-        [SerializeField] private DeepSeekSettings deepSeekAPISettings;
-
+        [SerializeField] private DeepSeekSettings config;
         [SerializeField] private DeepSeekModel modelType = DeepSeekModel.DeepSeek_V3;
+        [SerializeField] private bool useStreaming = false;
 
         [Header("UI Elements")]
         [SerializeField] private TMP_InputField inputField;
@@ -22,9 +22,8 @@ namespace YagizEraslan.DeepSeek.Unity
 
         private void Start()
         {
-            var api = new DeepSeekApi(deepSeekAPISettings);
-            controller = new DeepSeekChatController(api, GetSelectedModelName(), AddMessageToUI);
-
+            var api = new DeepSeekApi(config);
+            controller = new DeepSeekChatController(api, GetSelectedModelName(), AddMessageToUI, useStreaming);
 
             sendButton.onClick.AddListener(() =>
             {
@@ -34,15 +33,7 @@ namespace YagizEraslan.DeepSeek.Unity
 
         private string GetSelectedModelName()
         {
-            switch (modelType)
-            {
-                case DeepSeekModel.DeepSeek_V3:
-                    return "deepseek-chat";
-                case DeepSeekModel.DeepSeek_R1:
-                    return "deepseek-reasoner";
-                default:
-                    return "deepseek-chat"; // fallback
-            }
+            return modelType.ToModelString();
         }
 
         private void AddMessageToUI(ChatMessage message, bool isUser)
