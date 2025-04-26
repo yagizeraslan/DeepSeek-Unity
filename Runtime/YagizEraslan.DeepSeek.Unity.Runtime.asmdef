@@ -1,17 +1,14 @@
 {
   "name": "YagizEraslan.DeepSeek.Unity.Runtime",
+  "rootNamespace": "YagizEraslan.DeepSeek.Unity",
   "references": [],
   "optionalUnityReferences": [
-    "TextMeshPro",
-    "UnityEngine.UI"
+    "TextMeshPro"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
   "overrideReferences": false,
   "precompiledReferences": [],
-  "autoReferenced": true,
-  "defineConstraints": [],
-  "versionDefines": [],
-  "noEngineReferences": false
+  "autoReferenced": true
 }
