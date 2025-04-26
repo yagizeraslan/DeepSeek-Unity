@@ -1,6 +1,7 @@
 #if DEEPSEEK_HAS_UNITASK
 using Cysharp.Threading.Tasks;
 #endif
+using System.Threading.Tasks;
 
 namespace YagizEraslan.DeepSeek.Unity
 {
