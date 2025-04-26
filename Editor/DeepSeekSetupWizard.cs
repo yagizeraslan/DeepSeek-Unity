@@ -1,97 +1,113 @@
-#if UNITY_EDITOR
-using System.IO;
 using UnityEditor;
 using UnityEngine;
+using System.IO;
+using System.Linq;
+
+#if UNITY_EDITOR
 
 namespace YagizEraslan.DeepSeek.Unity.Editor
 {
-    [InitializeOnLoad]
-    public static class DeepSeekSetupWizard
+    public class DeepSeekSetupWizard : EditorWindow
     {
-        private const string UniTaskDependencyName = "com.cysharp.unitask";
-        private const string UniTaskGitUrl = "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask";
-        private const string SetupCompleteKey = "DeepSeekSetupWizardCompleted";
+        private const string UniTaskDefine = "DEEPSEEK_HAS_UNITASK";
+        private const string UniTaskPackageName = "com.cysharp.unitask";
+        private const string UniTaskGitUrl = "https://github.com/Cysharp/UniTask.git?path=src/UniTask/PackageResources/UniTask";
 
-        static DeepSeekSetupWizard()
+        [InitializeOnLoadMethod]
+        private static void Init()
         {
-            if (EditorPrefs.GetBool(SetupCompleteKey, false))
-                return;
-
             if (!IsUniTaskInstalled())
             {
-                if (EditorUtility.DisplayDialog(
-                    "DeepSeek Setup Wizard",
-                    "DeepSeek API for Unity requires the UniTask package for async operations.\n\nWould you like to install UniTask now?",
-                    "Install UniTask",
-                    "Cancel"))
-                {
-                    AddUniTaskToManifest();
-                    AddDefineSymbol();
-                }
+                EditorApplication.update += ShowWindowOnLoad;
+            }
+            else
+            {
+                AddDefineIfNeeded();
+            }
+        }
+
+        private static void ShowWindowOnLoad()
+        {
+            EditorApplication.update -= ShowWindowOnLoad;
+            ShowWindow();
+        }
+
+        [MenuItem("DeepSeek/Setup Wizard", false, 1)]
+        public static void ShowWindow()
+        {
+            DeepSeekSetupWizard window = GetWindow<DeepSeekSetupWizard>(true, "DeepSeek Setup Wizard");
+            window.position = new Rect(Screen.width / 2f, Screen.height / 2f, 400, 150);
+        }
+
+        private void OnGUI()
+        {
+            GUILayout.Label("DeepSeek API for Unity", EditorStyles.boldLabel);
+            GUILayout.Space(10);
+            GUILayout.Label("UniTask is required for streaming functionality.", EditorStyles.wordWrappedLabel);
+            GUILayout.Label("Would you like to install UniTask automatically?", EditorStyles.wordWrappedLabel);
+
+            GUILayout.Space(20);
+
+            GUILayout.BeginHorizontal();
+
+            if (GUILayout.Button("Install UniTask"))
+            {
+                InstallUniTask();
+                Close();
             }
 
-            EditorPrefs.SetBool(SetupCompleteKey, true);
+            if (GUILayout.Button("Cancel"))
+            {
+                Close();
+            }
+
+            GUILayout.EndHorizontal();
         }
 
         private static bool IsUniTaskInstalled()
         {
-            string manifestPath = Path.Combine(Application.dataPath, "../Packages/manifest.json");
-
-            if (!File.Exists(manifestPath))
-            {
-                Debug.LogError("manifest.json not found.");
-                return false;
-            }
-
-            string manifestContent = File.ReadAllText(manifestPath);
-            return manifestContent.Contains(UniTaskDependencyName);
+            return Directory.Exists(Path.Combine("Packages", UniTaskPackageName))
+                   || Directory.GetDirectories("Packages").Any(path => path.Contains("UniTask"));
         }
 
-        private static void AddUniTaskToManifest()
+        private static void InstallUniTask()
         {
             string manifestPath = Path.Combine(Application.dataPath, "../Packages/manifest.json");
+            string manifestText = File.ReadAllText(manifestPath);
 
-            if (!File.Exists(manifestPath))
+            if (!manifestText.Contains(UniTaskPackageName))
             {
-                Debug.LogError("manifest.json not found.");
-                return;
+                int index = manifestText.IndexOf("dependencies": {");
+                if (index != -1)
+                {
+                    int insertPos = manifestText.IndexOf('{', index) + 1;
+                    string toInsert = $"\n    \"{UniTaskPackageName}\": \"{UniTaskGitUrl}\",";
+                    manifestText = manifestText.Insert(insertPos, toInsert);
+
+                    File.WriteAllText(manifestPath, manifestText);
+                    AssetDatabase.Refresh();
+
+                    Debug.Log("[DeepSeek] UniTask installed successfully.");
+                }
+                else
+                {
+                    Debug.LogError("[DeepSeek] Could not find dependencies block in manifest.json.");
+                }
             }
 
-            string manifestContent = File.ReadAllText(manifestPath);
-
-            int dependenciesIndex = manifestContent.IndexOf("\"dependencies\": {");
-
-            if (dependenciesIndex == -1)
-            {
-                Debug.LogError("Dependencies section not found in manifest.json.");
-                return;
-            }
-
-            int insertIndex = manifestContent.IndexOf("{", dependenciesIndex) + 1;
-
-            string uniTaskEntry = $"\n    \"{UniTaskDependencyName}\": \"{UniTaskGitUrl}\",";
-
-            manifestContent = manifestContent.Insert(insertIndex, uniTaskEntry);
-
-            File.WriteAllText(manifestPath, manifestContent);
-
-            Debug.Log("UniTask has been added to manifest.json. Unity will now refresh.");
-
-            AssetDatabase.Refresh();
+            AddDefineIfNeeded();
         }
 
-        private static void AddDefineSymbol()
+        private static void AddDefineIfNeeded()
         {
-            var buildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
-            var symbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
-
-            if (!symbols.Contains("DEEPSEEK_HAS_UNITASK"))
+            var currentDefines = PlayerSettings.GetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+            if (!currentDefines.Contains(UniTaskDefine))
             {
-                symbols += ";DEEPSEEK_HAS_UNITASK";
-                PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, symbols);
-                Debug.Log("Added scripting define: DEEPSEEK_HAS_UNITASK");
+                currentDefines = string.IsNullOrEmpty(currentDefines) ? UniTaskDefine : currentDefines + ";" + UniTaskDefine;
+                PlayerSettings.SetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup, currentDefines);
             }
         }
     }
 }
+
 #endif
