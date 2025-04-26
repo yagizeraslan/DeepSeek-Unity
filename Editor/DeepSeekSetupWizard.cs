@@ -1,97 +1,81 @@
-#if UNITY_EDITOR
-using System.IO;
 using UnityEditor;
 using UnityEngine;
+using System.IO;
 
-namespace YagizEraslan.DeepSeek.Unity.Editor
+[InitializeOnLoad]
+public static class DeepSeekSetupWizard
 {
-    [InitializeOnLoad]
-    public static class DeepSeekSetupWizard
+    static DeepSeekSetupWizard()
     {
-        private const string UniTaskDependencyName = "com.cysharp.unitask";
-        private const string UniTaskGitUrl = "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask";
-        private const string SetupCompleteKey = "DeepSeekSetupWizardCompleted";
+        EditorApplication.update += ShowSetupWizard;
+    }
 
-        static DeepSeekSetupWizard()
+    private static void ShowSetupWizard()
+    {
+        EditorApplication.update -= ShowSetupWizard;
+        DeepSeekSetupWindow.ShowWindow();
+    }
+}
+
+public class DeepSeekSetupWindow : EditorWindow
+{
+    private static bool isUniTaskInstalled;
+
+    [MenuItem("DeepSeek/Install UniTask")]
+    public static void InstallUniTaskManually()
+    {
+        InstallUniTask();
+    }
+
+    [MenuItem("DeepSeek/Setup Wizard")]
+    public static void ShowWindow()
+    {
+        var window = GetWindow<DeepSeekSetupWindow>("DeepSeek Setup Wizard");
+        window.Show();
+    }
+
+    private void OnEnable()
+    {
+        isUniTaskInstalled = Directory.Exists(Path.Combine("Packages", "com.cysharp.unitask"));
+    }
+
+    private void OnGUI()
+    {
+        GUILayout.Label("DeepSeek Setup Wizard", EditorStyles.boldLabel);
+        GUILayout.Space(10);
+
+        if (isUniTaskInstalled)
         {
-            if (EditorPrefs.GetBool(SetupCompleteKey, false))
-                return;
-
-            if (!IsUniTaskInstalled())
-            {
-                if (EditorUtility.DisplayDialog(
-                    "DeepSeek Setup Wizard",
-                    "DeepSeek API for Unity requires the UniTask package for async operations.\n\nWould you like to install UniTask now?",
-                    "Install UniTask",
-                    "Cancel"))
-                {
-                    AddUniTaskToManifest();
-                    AddDefineSymbol();
-                }
-            }
-
-            EditorPrefs.SetBool(SetupCompleteKey, true);
+            EditorGUILayout.HelpBox("✅ UniTask is already installed!", MessageType.Info);
         }
-
-        private static bool IsUniTaskInstalled()
+        else
         {
-            string manifestPath = Path.Combine(Application.dataPath, "../Packages/manifest.json");
+            EditorGUILayout.HelpBox("UniTask is required for streaming support.", MessageType.Warning);
 
-            if (!File.Exists(manifestPath))
+            if (GUILayout.Button("Install UniTask"))
             {
-                Debug.LogError("manifest.json not found.");
-                return false;
-            }
-
-            string manifestContent = File.ReadAllText(manifestPath);
-            return manifestContent.Contains(UniTaskDependencyName);
-        }
-
-        private static void AddUniTaskToManifest()
-        {
-            string manifestPath = Path.Combine(Application.dataPath, "../Packages/manifest.json");
-
-            if (!File.Exists(manifestPath))
-            {
-                Debug.LogError("manifest.json not found.");
-                return;
-            }
-
-            string manifestContent = File.ReadAllText(manifestPath);
-
-            int dependenciesIndex = manifestContent.IndexOf("\"dependencies\": {");
-
-            if (dependenciesIndex == -1)
-            {
-                Debug.LogError("Dependencies section not found in manifest.json.");
-                return;
-            }
-
-            int insertIndex = manifestContent.IndexOf("{", dependenciesIndex) + 1;
-
-            string uniTaskEntry = $"\n    \"{UniTaskDependencyName}\": \"{UniTaskGitUrl}\",";
-
-            manifestContent = manifestContent.Insert(insertIndex, uniTaskEntry);
-
-            File.WriteAllText(manifestPath, manifestContent);
-
-            Debug.Log("UniTask has been added to manifest.json. Unity will now refresh.");
-
-            AssetDatabase.Refresh();
-        }
-
-        private static void AddDefineSymbol()
-        {
-            var buildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
-            var symbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
-
-            if (!symbols.Contains("DEEPSEEK_HAS_UNITASK"))
-            {
-                symbols += ";DEEPSEEK_HAS_UNITASK";
-                PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, symbols);
-                Debug.Log("Added scripting define: DEEPSEEK_HAS_UNITASK");
+                InstallUniTask();
             }
         }
     }
+
+    private static void InstallUniTask()
+    {
+        string manifestPath = Path.Combine(Application.dataPath, "../Packages/manifest.json");
+        string manifestJson = File.ReadAllText(manifestPath);
+
+        if (!manifestJson.Contains("com.cysharp.unitask"))
+        {
+            int dependenciesIndex = manifestJson.IndexOf("\"dependencies\": {") + "\"dependencies\": {".Length;
+            string insertion = "\n    \"com.cysharp.unitask\": \"https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask\",";
+            manifestJson = manifestJson.Insert(dependenciesIndex, insertion);
+            File.WriteAllText(manifestPath, manifestJson);
+            AssetDatabase.Refresh();
+            Debug.Log("[DeepSeek] UniTask installed.");
+        }
+        else
+        {
+            Debug.Log("[DeepSeek] UniTask is already listed in manifest.json.");
+        }
+    }
 }
-#endif
