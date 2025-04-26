@@ -1,7 +1,4 @@
-#if DEEPSEEK_HAS_UNITASK
 using Cysharp.Threading.Tasks;
-#endif
-
 using UnityEngine;
 using UnityEngine.Networking;
 using System;

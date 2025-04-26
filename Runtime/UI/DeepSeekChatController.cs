@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-
-#if DEEPSEEK_HAS_UNITASK
 using Cysharp.Threading.Tasks;
-#endif
 
 namespace YagizEraslan.DeepSeek.Unity
 {
