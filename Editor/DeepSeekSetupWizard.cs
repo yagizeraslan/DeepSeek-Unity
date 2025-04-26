@@ -84,8 +84,11 @@ public class DeepSeekSetupWindow : EditorWindow
             string insertion = "\n    \"com.cysharp.unitask\": \"https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask\",";
             manifestJson = manifestJson.Insert(dependenciesIndex, insertion);
             File.WriteAllText(manifestPath, manifestJson);
+        
             AssetDatabase.Refresh();
-            Debug.Log("[DeepSeek] UniTask installed.");
+            UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation(); // 🔥 Force recompile
+        
+            Debug.Log("[DeepSeek] UniTask installed and scripts recompiled.");
         }
         else
         {
