@@ -86,20 +86,18 @@ public class DeepSeekSetupWindow : EditorWindow
             File.WriteAllText(manifestPath, manifestJson);
 
             AssetDatabase.Refresh();
-            UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
-
             AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
-
-            AssetDatabase.Refresh();
             UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
 
-            Debug.Log("[DeepSeek] UniTask installed and recompile requested.");
+            Debug.Log("[DeepSeek] UniTask installed, scripting define added, and recompile requested.");
+            Debug.Log("[DeepSeek] ⚡ Please wait for domain reload, or manually press Ctrl+R if errors appear temporarily.");
         }
         else
         {
-            Debug.Log("[DeepSeek] UniTask already listed.");
+            Debug.Log("[DeepSeek] UniTask already listed in manifest.json.");
         }
     }
+
 
 
     private static void AddDefineSymbol(string symbol)
