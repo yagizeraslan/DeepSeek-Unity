@@ -44,7 +44,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00c92c21d9b7f4f229df33abf66ff030, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  config: {fileID: 11400000, guid: 25ac81aa72de644faae9ab115b8f6b18, type: 2}
+  deepSeekAPISettings: {fileID: 11400000, guid: 25ac81aa72de644faae9ab115b8f6b18, type: 2}
+  modelType: 0
   inputField: {fileID: 0}
   sendButton: {fileID: 0}
   sentMessagePrefab: {fileID: 8660877164928630359, guid: 53cd26a6eefa5a74086203cd118a04d3, type: 3}
