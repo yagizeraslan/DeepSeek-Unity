@@ -54,7 +54,7 @@ namespace YagizEraslan.DeepSeek.Unity
             var request = new ChatCompletionRequest
             {
                 model = selectedModelName,
-                messages = history
+                messages = history.ToArray()
             };
 
 #if DEEPSEEK_HAS_UNITASK

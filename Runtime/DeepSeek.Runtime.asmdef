@@ -1,3 +1,16 @@
 {
-	"name": "DeepSeek.Runtime"
+  "name": "DeepSeek.Runtime",
+  "rootNamespace": "YagizEraslan.DeepSeek.Unity",
+  "references": [
+    "UniTask"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
 }
