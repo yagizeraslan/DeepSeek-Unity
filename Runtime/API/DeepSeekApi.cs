@@ -1,3 +1,7 @@
+#if DEEPSEEK_HAS_UNITASK
+using Cysharp.Threading.Tasks;
+#endif
+
 using UnityEngine;
 
 namespace YagizEraslan.DeepSeek.Unity
@@ -13,7 +17,11 @@ namespace YagizEraslan.DeepSeek.Unity
             this.settings = config;
         }
 
+#if DEEPSEEK_HAS_UNITASK
         public async UniTask<ChatCompletionResponse> CreateChatCompletion(ChatCompletionRequest request)
+#else
+        public async Task<ChatCompletionResponse> CreateChatCompletion(ChatCompletionRequest request)
+#endif
         {
             using var www = new UnityEngine.Networking.UnityWebRequest("https://api.deepseek.com/chat/completions", "POST");
             string body = JsonUtility.ToJson(request);
@@ -24,7 +32,11 @@ namespace YagizEraslan.DeepSeek.Unity
             www.SetRequestHeader("Content-Type", "application/json");
             www.SetRequestHeader("Authorization", $"Bearer {settings.apiKey}");
 
+#if DEEPSEEK_HAS_UNITASK
             await www.SendWebRequest().ToUniTask();
+#else
+            await www.SendWebRequest();
+#endif
 
             if (www.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
             {
