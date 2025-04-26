@@ -10,7 +10,7 @@
   "licensesUrl": "https://github.com/yagizeraslan/DeepSeek-Unity/blob/main/LICENSE",
   "dependencies": {
     "com.unity.textmeshpro": "3.0.6",
-    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git#upm"
+    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask"
   },
   "keywords": [
     "deepseek",
