@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using System.Collections;
 
 namespace YagizEraslan.DeepSeek.Unity
 {
@@ -19,11 +20,12 @@ namespace YagizEraslan.DeepSeek.Unity
         [SerializeField] private Transform messageContainer;
 
         private DeepSeekChatController controller;
+        private TMP_Text activeStreamingText; // For live typing
 
         private void Start()
         {
             var api = new DeepSeekApi(config);
-            controller = new DeepSeekChatController(api, GetSelectedModelName(), AddMessageToUI, useStreaming);
+            controller = new DeepSeekChatController(api, GetSelectedModelName(), AddFullMessageToUI, AppendStreamingCharacter, useStreaming);
 
             sendButton.onClick.AddListener(() =>
             {
@@ -36,7 +38,7 @@ namespace YagizEraslan.DeepSeek.Unity
             return modelType.ToModelString();
         }
 
-        private void AddMessageToUI(ChatMessage message, bool isUser)
+        private void AddFullMessageToUI(ChatMessage message, bool isUser)
         {
             var prefab = isUser ? sentMessagePrefab : receivedMessagePrefab;
             var instance = Instantiate(prefab, messageContainer);
@@ -44,6 +46,23 @@ namespace YagizEraslan.DeepSeek.Unity
             if (textComponent != null)
             {
                 textComponent.text = message.content;
+            }
+
+            if (!isUser && useStreaming)
+            {
+                activeStreamingText = textComponent;
+            }
+            else
+            {
+                activeStreamingText = null;
+            }
+        }
+
+        private void AppendStreamingCharacter(string partialContent)
+        {
+            if (activeStreamingText != null)
+            {
+                activeStreamingText.text = partialContent;
             }
         }
     }

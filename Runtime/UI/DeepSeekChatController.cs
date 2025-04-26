@@ -10,17 +10,18 @@ namespace YagizEraslan.DeepSeek.Unity
         private readonly IDeepSeekApi api;
         private readonly List<ChatMessage> history = new();
         private readonly Action<ChatMessage, bool> onMessageUpdate;
+        private readonly Action<string> onStreamingUpdate;
         private readonly string selectedModelName;
         private readonly bool useStreaming;
 
-        public DeepSeekChatController(IDeepSeekApi api, string modelName, Action<ChatMessage, bool> addMessageCallback, bool useStreaming)
+        public DeepSeekChatController(IDeepSeekApi api, string modelName, Action<ChatMessage, bool> messageCallback, Action<string> streamingCallback, bool useStreaming)
         {
             this.api = api;
             this.selectedModelName = modelName;
-            this.onMessageUpdate = addMessageCallback;
+            this.onMessageUpdate = messageCallback;
+            this.onStreamingUpdate = streamingCallback;
             this.useStreaming = useStreaming;
         }
-
 
         public async void SendUserMessage(string userMessage)
         {
@@ -86,29 +87,22 @@ namespace YagizEraslan.DeepSeek.Unity
                 if (response != null && response.choices != null && response.choices.Length > 0)
                 {
                     var aiMessage = response.choices[0].message;
-
-                    // STEP 1: Create one empty UI message first
-                    var instance = UnityEngine.Object.Instantiate(receivedMessagePrefab, messageContainer);
-                    var textComponent = instance.GetComponentInChildren<TMP_Text>();
-
-                    if (textComponent == null)
-                    {
-                        Debug.LogError("No TMP_Text found on receivedMessagePrefab!");
-                        return;
-                    }
-
                     string streamedContent = "";
 
-                    // STEP 2: Typing simulation
+                    onMessageUpdate?.Invoke(new ChatMessage
+                    {
+                        role = "assistant",
+                        content = streamedContent
+                    }, false);
+
                     foreach (char c in aiMessage.content)
                     {
                         streamedContent += c;
-                        textComponent.text = streamedContent;
+                        onStreamingUpdate?.Invoke(streamedContent);
 
                         await Task.Delay(30); // Typing speed per character
                     }
 
-                    // STEP 3: Save final full message to history
                     history.Add(aiMessage);
                 }
                 else
@@ -121,6 +115,5 @@ namespace YagizEraslan.DeepSeek.Unity
                 Debug.LogError($"Error during streaming response from DeepSeek API: {ex.Message}");
             }
         }
-
     }
 }
