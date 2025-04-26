@@ -9,7 +9,7 @@ namespace YagizEraslan.DeepSeek.Unity.Editor
     public static class DeepSeekSetupWizard
     {
         private const string UniTaskDependencyName = "com.cysharp.unitask";
-        private const string UniTaskGitUrl = "https://github.com/Cysharp/UniTask.git?path=src/UniTask/PackageResources/UniTask";
+        private const string UniTaskGitUrl = "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask";
         private const string SetupCompleteKey = "DeepSeekSetupWizardCompleted";
 
         static DeepSeekSetupWizard()
