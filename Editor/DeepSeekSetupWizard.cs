@@ -86,9 +86,11 @@ public class DeepSeekSetupWindow : EditorWindow
             File.WriteAllText(manifestPath, manifestJson);
 
             AssetDatabase.Refresh();
+            UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
 
             AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
 
+            AssetDatabase.Refresh();
             UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
 
             Debug.Log("[DeepSeek] UniTask installed and recompile requested.");
