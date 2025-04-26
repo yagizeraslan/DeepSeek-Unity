@@ -86,21 +86,29 @@ namespace YagizEraslan.DeepSeek.Unity
                 if (response != null && response.choices != null && response.choices.Length > 0)
                 {
                     var aiMessage = response.choices[0].message;
+
+                    // STEP 1: Create one empty UI message first
+                    var instance = UnityEngine.Object.Instantiate(receivedMessagePrefab, messageContainer);
+                    var textComponent = instance.GetComponentInChildren<TMP_Text>();
+
+                    if (textComponent == null)
+                    {
+                        Debug.LogError("No TMP_Text found on receivedMessagePrefab!");
+                        return;
+                    }
+
                     string streamedContent = "";
 
+                    // STEP 2: Typing simulation
                     foreach (char c in aiMessage.content)
                     {
                         streamedContent += c;
-                        var partialMessage = new ChatMessage
-                        {
-                            role = "assistant",
-                            content = streamedContent
-                        };
-                        onMessageUpdate?.Invoke(partialMessage, false);
+                        textComponent.text = streamedContent;
 
                         await Task.Delay(30); // Typing speed per character
                     }
 
+                    // STEP 3: Save final full message to history
                     history.Add(aiMessage);
                 }
                 else
@@ -113,5 +121,6 @@ namespace YagizEraslan.DeepSeek.Unity
                 Debug.LogError($"Error during streaming response from DeepSeek API: {ex.Message}");
             }
         }
+
     }
 }
