@@ -84,15 +84,37 @@ public class DeepSeekSetupWindow : EditorWindow
             string insertion = "\n    \"com.cysharp.unitask\": \"https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask\",";
             manifestJson = manifestJson.Insert(dependenciesIndex, insertion);
             File.WriteAllText(manifestPath, manifestJson);
-        
+
             AssetDatabase.Refresh();
-            UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation(); // 🔥 Force recompile
-        
-            Debug.Log("[DeepSeek] UniTask installed and scripts recompiled.");
+            UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+
+            Debug.Log("[DeepSeek] UniTask installed and recompile requested.");
+
+            AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
         }
         else
         {
-            Debug.Log("[DeepSeek] UniTask is already listed in manifest.json.");
+            Debug.Log("[DeepSeek] UniTask already listed.");
+        }
+    }
+
+    private static void AddDefineSymbol(string symbol)
+    {
+        var buildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
+        string defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+
+        if (!defines.Contains(symbol))
+        {
+            if (!string.IsNullOrEmpty(defines))
+                defines += ";";
+
+            defines += symbol;
+            PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, defines);
+            Debug.Log($"[DeepSeek] Added Scripting Define Symbol: {symbol}");
+        }
+        else
+        {
+            Debug.Log($"[DeepSeek] Scripting Define Symbol '{symbol}' already exists.");
         }
     }
 }
