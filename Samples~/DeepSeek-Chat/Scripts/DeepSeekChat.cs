@@ -23,7 +23,8 @@ namespace YagizEraslan.DeepSeek.Unity
         private void Start()
         {
             var api = new DeepSeekApi(deepSeekAPISettings);
-            controller = new DeepSeekChatController(api, AddMessageToUI);
+            controller = new DeepSeekChatController(api, GetSelectedModelName(), AddMessageToUI);
+
 
             sendButton.onClick.AddListener(() =>
             {

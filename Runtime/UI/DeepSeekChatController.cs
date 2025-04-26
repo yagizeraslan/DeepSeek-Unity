@@ -8,10 +8,13 @@ namespace YagizEraslan.DeepSeek.Unity
         private readonly List<ChatMessage> history = new();
         private readonly System.Action<ChatMessage, bool> onMessageUpdate;
 
-        public DeepSeekChatController(IDeepSeekApi api, System.Action<ChatMessage, bool> onUpdate)
+        private readonly string selectedModelName;
+
+        public DeepSeekChatController(IDeepSeekApi api, string modelName, Action<ChatMessage, bool> addMessageCallback)
         {
             this.api = api;
-            this.onMessageUpdate = onUpdate;
+            this.selectedModelName = modelName;
+            this.addMessageCallback = addMessageCallback;
         }
 
         public async void SendUserMessage(string input)
