@@ -29,6 +29,7 @@ public static class DeepSeekSetupWizard
 public class DeepSeekSetupWindow : EditorWindow
 {
     private static bool isUniTaskInstalled;
+    private static bool waitingForCompile = false;
 
     [MenuItem("DeepSeek/Install UniTask Manually")]
     public static void InstallUniTaskManually()
@@ -62,9 +63,13 @@ public class DeepSeekSetupWindow : EditorWindow
         {
             EditorGUILayout.HelpBox("✅ UniTask is already installed!", MessageType.Info);
         }
+        else if (waitingForCompile)
+        {
+            EditorGUILayout.HelpBox("⚙️ Installing UniTask... Please wait for Unity to recompile.", MessageType.Info);
+        }
         else
         {
-            EditorGUILayout.HelpBox("UniTask is required for streaming support.", MessageType.Warning);
+            EditorGUILayout.HelpBox("⚠️ UniTask is required for streaming support.", MessageType.Warning);
 
             if (GUILayout.Button("Install UniTask"))
             {
@@ -76,29 +81,65 @@ public class DeepSeekSetupWindow : EditorWindow
     private static void InstallUniTask()
     {
         string manifestPath = Path.Combine(Application.dataPath, "../Packages/manifest.json");
+
+        if (!File.Exists(manifestPath))
+        {
+            Debug.LogError("[DeepSeek] manifest.json not found!");
+            return;
+        }
+
         string manifestJson = File.ReadAllText(manifestPath);
 
-        if (!manifestJson.Contains("com.cysharp.unitask"))
+        if (manifestJson.Contains("com.cysharp.unitask"))
+        {
+            Debug.Log("[DeepSeek] UniTask is already installed.");
+            return;
+        }
+
+        try
         {
             int dependenciesIndex = manifestJson.IndexOf("\"dependencies\": {") + "\"dependencies\": {".Length;
+            if (dependenciesIndex < "\"dependencies\": {".Length)
+            {
+                Debug.LogError("[DeepSeek] Could not find dependencies section in manifest.json.");
+                return;
+            }
+
             string insertion = "\n    \"com.cysharp.unitask\": \"https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask\",";
             manifestJson = manifestJson.Insert(dependenciesIndex, insertion);
             File.WriteAllText(manifestPath, manifestJson);
 
-            AssetDatabase.Refresh();
-            AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
-            UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
-
-            Debug.Log("[DeepSeek] UniTask installed, scripting define added, and recompile requested.");
-            Debug.Log("[DeepSeek] ⚡ Please wait for domain reload, or manually press Ctrl+R if errors appear temporarily.");
+            Debug.Log("[DeepSeek] UniTask added to manifest.json.");
         }
-        else
+        catch (System.Exception ex)
         {
-            Debug.Log("[DeepSeek] UniTask already listed in manifest.json.");
+            Debug.LogError("[DeepSeek] Failed to modify manifest.json: " + ex.Message);
+            return;
         }
+
+        AssetDatabase.Refresh();
+        UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+
+        waitingForCompile = true;
+        EditorApplication.update += WaitForCompile;
+
+        Debug.Log("[DeepSeek] Refreshing assets and requesting script compilation...");
+        Debug.Log("[DeepSeek] ⚡ Please wait for Unity to finish reloading...");
     }
 
+    private static void WaitForCompile()
+    {
+        if (EditorApplication.isCompiling)
+            return;
 
+        EditorApplication.update -= WaitForCompile;
+        waitingForCompile = false;
+
+        AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
+        UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+
+        Debug.Log("[DeepSeek] ✅ UniTask installation complete! Define symbol added and final compile requested.");
+    }
 
     private static void AddDefineSymbol(string symbol)
     {
