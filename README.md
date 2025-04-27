@@ -1,3 +1,15 @@
+<p align="center">
+  <a href="https://unity.com/releases/editor/whats-new/2020.3.0">
+    <img alt="Unity 2020.3+" src="https://img.shields.io/badge/Unity-2020.3%2B-green?logo=unity&logoColor=white">
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg">
+  </a>
+  <a href="https://github.com/sponsors/yagizeraslan">
+    <img alt="Sponsor" src="https://img.shields.io/badge/Sponsor-❤-ff69b4">
+  </a>
+</p>
+
 # 🧠 DeepSeek API for Unity
 
 > 💬 A clean, modular Unity integration for DeepSeek's powerful LLMs — chat, reasoning, and task automation made easy.
