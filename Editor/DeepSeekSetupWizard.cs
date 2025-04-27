@@ -60,7 +60,11 @@ public class DeepSeekSetupWindow : EditorWindow
     private static void RefreshState()
     {
         isUniTaskInstalled = Directory.Exists(Path.Combine("Packages", "com.cysharp.unitask"));
-        defineSymbolAdded = PlayerSettings.GetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup).Contains("DEEPSEEK_HAS_UNITASK");
+
+        var buildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
+        var namedBuildTarget = UnityEditor.Build.NamedBuildTarget.FromBuildTargetGroup(buildTargetGroup);
+
+        defineSymbolAdded = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget).Contains("DEEPSEEK_HAS_UNITASK");
     }
 
     private void OnGUI()
