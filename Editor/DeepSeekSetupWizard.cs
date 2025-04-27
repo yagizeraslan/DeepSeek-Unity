@@ -149,7 +149,9 @@ public class DeepSeekSetupWindow : EditorWindow
     public static void AddDefineSymbol(string symbol)
     {
         var buildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
-        string defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
+        var namedBuildTarget = UnityEditor.Build.NamedBuildTarget.FromBuildTargetGroup(buildTargetGroup);
+
+        string defines = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
 
         if (!defines.Contains(symbol))
         {
@@ -157,7 +159,7 @@ public class DeepSeekSetupWindow : EditorWindow
                 defines += ";";
 
             defines += symbol;
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, defines);
+            PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, defines);
             Debug.Log($"[DeepSeek] ➕ Added Scripting Define Symbol: {symbol}");
         }
         else
@@ -165,7 +167,7 @@ public class DeepSeekSetupWindow : EditorWindow
             Debug.Log($"[DeepSeek] ✅ Scripting Define Symbol '{symbol}' already exists.");
         }
     }
-
+    
     private static void CloseSetupWindow()
     {
         if (instance != null)
