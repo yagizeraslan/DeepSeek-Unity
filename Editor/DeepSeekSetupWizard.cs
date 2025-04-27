@@ -32,15 +32,16 @@ public static class DeepSeekSetupWizard
         if (EditorApplication.isCompiling)
             return;
 
-        if (SessionState.GetBool("DeepSeek_WaitingForDefine", false))
+        if (EditorPrefs.GetBool("DeepSeek_WaitingForDefine", false))
         {
-            SessionState.EraseBool("DeepSeek_WaitingForDefine");
+            EditorPrefs.DeleteKey("DeepSeek_WaitingForDefine");
 
-            Debug.Log("[DeepSeek] ✅ Post-compilation: Adding define symbol for UniTask...");
+            Debug.Log("[DeepSeek] Post-compilation: Adding define symbol for UniTask...");
             DeepSeekSetupWindow.AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
 
             UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
 
+            // Close wizard if it is open
             DeepSeekSetupWindow.TryCloseWindow();
         }
 
@@ -53,9 +54,8 @@ public static class DeepSeekSetupWizard
         {
             EditorApplication.update -= CheckIfUniTaskImported;
 
-            Debug.Log("[DeepSeek] 📦 UniTask package detected! Requesting script recompilation...");
-
-            SessionState.SetBool("DeepSeek_WaitingForDefine", true);
+            Debug.Log("[DeepSeek] 📦 UniTask package detected! Forcing recompile...");
+            EditorPrefs.SetBool("DeepSeek_WaitingForDefine", true);
 
             UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
         }
@@ -117,7 +117,7 @@ public class DeepSeekSetupWindow : EditorWindow
 
         if (!File.Exists(manifestPath))
         {
-            Debug.LogError("[DeepSeek] ❌ manifest.json not found!");
+            Debug.LogError("[DeepSeek] manifest.json not found!");
             return;
         }
 
@@ -125,7 +125,7 @@ public class DeepSeekSetupWindow : EditorWindow
 
         if (manifestJson.Contains("com.cysharp.unitask"))
         {
-            Debug.Log("[DeepSeek] UniTask is already listed in manifest.json.");
+            Debug.Log("[DeepSeek] UniTask is already installed.");
             return;
         }
 
@@ -134,7 +134,7 @@ public class DeepSeekSetupWindow : EditorWindow
             int dependenciesIndex = manifestJson.IndexOf("\"dependencies\": {") + "\"dependencies\": {".Length;
             if (dependenciesIndex < "\"dependencies\": {".Length)
             {
-                Debug.LogError("[DeepSeek] ❌ Could not find dependencies section in manifest.json.");
+                Debug.LogError("[DeepSeek] Could not find dependencies section in manifest.json.");
                 return;
             }
 
@@ -142,21 +142,22 @@ public class DeepSeekSetupWindow : EditorWindow
             manifestJson = manifestJson.Insert(dependenciesIndex, insertion);
             File.WriteAllText(manifestPath, manifestJson);
 
-            Debug.Log("[DeepSeek] ✍️ UniTask dependency inserted into manifest.json.");
+            Debug.Log("[DeepSeek] UniTask added to manifest.json.");
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"[DeepSeek] ❌ Failed to modify manifest.json: {ex.Message}");
+            Debug.LogError("[DeepSeek] Failed to modify manifest.json: " + ex.Message);
             return;
         }
 
         AssetDatabase.Refresh();
-        Client.Resolve();
+        Client.Resolve(); // 🚀 Force Unity to immediately recheck UPM
 
+        // Start polling until package appears
         EditorApplication.update += DeepSeekSetupWizard.CheckIfUniTaskImported;
 
-        Debug.Log("[DeepSeek] 🔄 Refreshing assets and resolving packages...");
-        Debug.Log("[DeepSeek] ⚡ Please wait, UniTask will be installed automatically.");
+        Debug.Log("[DeepSeek] Refreshing assets and resolving packages...");
+        Debug.Log("[DeepSeek] ⚡ Please wait, everything will complete automatically!");
     }
 
     public static void AddDefineSymbol(string symbol)
@@ -171,12 +172,11 @@ public class DeepSeekSetupWindow : EditorWindow
 
             defines += symbol;
             PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, defines);
-
-            Debug.Log($"[DeepSeek] ➕ Added Scripting Define Symbol: {symbol}");
+            Debug.Log($"[DeepSeek] Added Scripting Define Symbol: {symbol}");
         }
         else
         {
-            Debug.Log($"[DeepSeek] ✅ Scripting Define Symbol '{symbol}' already exists.");
+            Debug.Log($"[DeepSeek] Scripting Define Symbol '{symbol}' already exists.");
         }
     }
 
@@ -185,7 +185,7 @@ public class DeepSeekSetupWindow : EditorWindow
         if (instance != null)
         {
             instance.Close();
-            Debug.Log("[DeepSeek] 🎉 Setup Wizard closed. UniTask installation completed!");
+            Debug.Log("[DeepSeek] 🎉 Setup Wizard closed. Installation completed!");
         }
     }
 }
