@@ -57,16 +57,15 @@
 4. Paste:
     
     ```csharp
+    csharp
+    CopyEdit
     https://github.com/yagizeraslan/DeepSeek-Unity.git
-
+    
     ```
     
 5. Click **Add**
 
-### Option 2: From Unity Asset Store *(Coming Soon)*
-
-- Search for **"DeepSeek API for Unity"**
-- Import into your project
+✅ Setup Wizard will guide you after install!
 
 ---
 
@@ -74,10 +73,10 @@
 
 ### 🔧 Setup
 
-1. Go to `DeepSeek > Settings` in Unity’s top menu bar
-2. Paste your **API key** into the editor window (dev-only)
-3. (Optional) Create a `DeepSeekSettings` asset to store your key securely for runtime builds
-4. Drag the `DeepSeekChat` prefab from the sample into your scene
+1. After installation, the **Setup Wizard** will automatically open.
+2. Paste your **API key** into the wizard window.
+3. (Optional) Create a `DeepSeekSettings` asset inside the wizard for runtime-safe storage.
+4. Drag the `DeepSeekChat` prefab from the sample into your scene.
 5. Hit Play — and chat with DeepSeek AI in seconds 💬
 
 ---
@@ -151,13 +150,17 @@ void Start()
 
 ### 🔄 Streaming Support
 
+DeepSeek-Unity supports real-time streaming using DeepSeek’s native API streaming features.
+
 Use `CreateChatCompletionStreaming` with a callback for partial updates. (Docs coming soon)
 
 ### 💬 Multiple Models
 
 ```csharp
-DeepSeekModel.DeepSeekChat
-DeepSeekModel.DeepSeekR1
+csharp
+CopyEdit
+DeepSeekModel.DeepSeek_V3
+DeepSeekModel.DeepSeek_R1
 
 ```
 
@@ -176,6 +179,10 @@ DeepSeekModel.DeepSeekR1
 **Streaming not working?**
 
 → Some Unity versions may require extra coroutine-based handling. Coming soon.
+
+**Temporary compile errors after UniTask install?**
+
+→ Wait for Unity to recompile automatically, or press **Ctrl+R** to refresh scripts manually.
 
 ---
 
