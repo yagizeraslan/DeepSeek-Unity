@@ -33,11 +33,8 @@ public class DeepSeekSetupWindow : EditorWindow
     private static bool isUniTaskInstalled;
     private static bool defineSymbolAdded;
 
-    [MenuItem("DeepSeek/Install UniTask Manually")]
-    public static void InstallUniTaskManually()
-    {
-        InstallUniTask();
-    }
+    private float displayedProgress = 0f;
+    private float progressSpeed = 2f;
 
     [MenuItem("DeepSeek/Setup Wizard")]
     public static void OpenSetupWizard()
@@ -48,6 +45,7 @@ public class DeepSeekSetupWindow : EditorWindow
     public static void ShowWindow()
     {
         instance = GetWindow<DeepSeekSetupWindow>("DeepSeek Setup Wizard");
+        instance.minSize = new Vector2(400, 550);
         instance.Show();
     }
 
@@ -69,39 +67,98 @@ public class DeepSeekSetupWindow : EditorWindow
 
     private void OnGUI()
     {
-        GUILayout.Label("DeepSeek Setup Wizard", EditorStyles.boldLabel);
-        GUILayout.Space(10);
+        GUILayout.Space(20);
 
-        // Install UniTask Button
+        // Big Title
+        GUIStyle titleStyle = new GUIStyle(EditorStyles.boldLabel);
+        titleStyle.fontSize = 20;
+        titleStyle.alignment = TextAnchor.MiddleCenter;
+        GUILayout.Label("DeepSeek Setup Wizard", titleStyle);
+
+        GUILayout.Space(5);
+
+        // Short Description
+        GUIStyle descStyle = new GUIStyle(EditorStyles.label);
+        descStyle.alignment = TextAnchor.MiddleCenter;
+        descStyle.wordWrap = true;
+        GUILayout.Label("An unofficial Unity package for seamless integration with the DeepSeek API, enabling advanced reasoning, chat, and task automation in Unity projects. Includes sample scenes, easy API setup, and comprehensive scripts for developers to build smarter interactive experiences.", descStyle);
+
+        GUILayout.Space(20);
+
+        // Progress Bar
+        float targetProgress = CalculateProgress();
+        displayedProgress = Mathf.MoveTowards(displayedProgress, targetProgress, Time.deltaTime * progressSpeed);
+
+        Rect progressRect = GUILayoutUtility.GetRect(300, 20);
+        EditorGUI.ProgressBar(progressRect, displayedProgress, $"{(int)(displayedProgress * 100)}% Complete");
+
+        GUILayout.Space(20);
+
+        // Steps
+        DrawStep("Install UniTask", isUniTaskInstalled);
+        GUILayout.Space(5);
+        DrawStep("Add DeepSeek Define Symbol", defineSymbolAdded);
+
+        GUILayout.Space(20);
+
+        // Buttons
         EditorGUI.BeginDisabledGroup(isUniTaskInstalled);
-        if (GUILayout.Button(isUniTaskInstalled ? "✅ UniTask Installed" : "Install UniTask"))
+        if (GUILayout.Button(isUniTaskInstalled ? "✅ UniTask Installed" : "Install UniTask", GUILayout.Height(40)))
         {
             InstallUniTask();
             RefreshState();
         }
         EditorGUI.EndDisabledGroup();
 
-        GUILayout.Space(5);
+        GUILayout.Space(10);
 
-        // Add Define Symbol Button
         EditorGUI.BeginDisabledGroup(!isUniTaskInstalled || defineSymbolAdded);
-        if (GUILayout.Button(defineSymbolAdded ? "✅ Define Symbol Added" : "Add DeepSeek Define Symbol"))
+        if (GUILayout.Button(defineSymbolAdded ? "✅ Define Symbol Added" : "Add DeepSeek Define Symbol", GUILayout.Height(40)))
         {
             AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
             RefreshState();
         }
         EditorGUI.EndDisabledGroup();
 
-        GUILayout.Space(5);
+        GUILayout.Space(10);
 
-        // Done Button
         EditorGUI.BeginDisabledGroup(!isUniTaskInstalled || !defineSymbolAdded);
-        if (GUILayout.Button("DONE!"))
+        if (GUILayout.Button("🎉 DONE!", GUILayout.Height(40)))
         {
-            Debug.Log("[DeepSeek] 🎉 Setup Complete! Closing Wizard.");
             CloseSetupWindow();
         }
         EditorGUI.EndDisabledGroup();
+
+        GUILayout.FlexibleSpace();
+        GUILayout.Space(20);
+
+        GUILayout.Label("Developed by Yağız Eraslan", EditorStyles.centeredGreyMiniLabel);
+
+        GUILayout.Space(10);
+
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button("⭐ Support Developer"))
+        {
+            Application.OpenURL("https://github.com/yagizeraslan/DeepSeek-Unity");
+        }
+        if (GUILayout.Button("📨 Contact"))
+        {
+            Application.OpenURL("mailto:yagizeraslan@gmail.com");
+        }
+        GUILayout.EndHorizontal();
+
+        GUILayout.Space(10);
+
+        Repaint();
+    }
+
+    private void DrawStep(string title, bool completed)
+    {
+        GUILayout.BeginHorizontal();
+        GUILayout.Space(20);
+        GUILayout.Label(completed ? "✅" : "⬜", GUILayout.Width(25));
+        GUILayout.Label(title, EditorStyles.label);
+        GUILayout.EndHorizontal();
     }
 
     private static void InstallUniTask()
@@ -145,9 +202,7 @@ public class DeepSeekSetupWindow : EditorWindow
 
         AssetDatabase.Refresh();
         Client.Resolve();
-
         Debug.Log("[DeepSeek] 🔄 Refreshing assets and resolving packages...");
-        Debug.Log("[DeepSeek] ⚡ Please wait for Unity to finish reloading.");
     }
 
     public static void AddDefineSymbol(string symbol)
@@ -171,7 +226,7 @@ public class DeepSeekSetupWindow : EditorWindow
             Debug.Log($"[DeepSeek] ✅ Scripting Define Symbol '{symbol}' already exists.");
         }
     }
-    
+
     private static void CloseSetupWindow()
     {
         if (instance != null)
@@ -179,5 +234,16 @@ public class DeepSeekSetupWindow : EditorWindow
             instance.Close();
             instance = null;
         }
+    }
+
+    private float CalculateProgress()
+    {
+        int totalSteps = 2;
+        int completedSteps = 0;
+
+        if (isUniTaskInstalled) completedSteps++;
+        if (defineSymbolAdded) completedSteps++;
+
+        return (float)completedSteps / totalSteps;
     }
 }
