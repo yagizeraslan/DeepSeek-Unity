@@ -16,6 +16,9 @@
   <a href="https://github.com/yagizeraslan/DeepSeek-Unity/commits/main">
     <img alt="Last Commit" src="https://img.shields.io/github/last-commit/yagizeraslan/DeepSeek-Unity">
   </a>
+  <a href="https://github.com/yagizeraslan/DeepSeek-Unity">
+    <img alt="Code Size" src="https://img.shields.io/github/languages/code-size/yagizeraslan/DeepSeek-Unity">
+  </a>
   <img alt="Maintenance" src="https://img.shields.io/badge/Maintained-Yes-brightgreen">
   <br/>
   
@@ -32,7 +35,6 @@
   <img alt="Windows" src="https://img.shields.io/badge/Platform-Windows-blue">
   <img alt="WebGL" src="https://img.shields.io/badge/Platform-WebGL-orange">
   <img alt="Android" src="https://img.shields.io/badge/Platform-Android-green">
-  <img alt="iOS" src="https://img.shields.io/badge/Platform-iOS-lightgrey">
 </p>
 
 # 🧠 DeepSeek API for Unity
