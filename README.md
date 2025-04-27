@@ -8,6 +8,16 @@
   <a href="https://github.com/sponsors/yagizeraslan">
     <img alt="Sponsor" src="https://img.shields.io/badge/Sponsor-❤-ff69b4">
   </a>
+  <br/>
+  <a href="https://github.com/yagizeraslan/DeepSeek-Unity/stargazers">
+    <img alt="GitHub stars" src="https://img.shields.io/github/stars/yagizeraslan/DeepSeek-Unity?style=social">
+  </a>
+  <a href="https://github.com/yagizeraslan/DeepSeek-Unity/network/members">
+    <img alt="GitHub forks" src="https://img.shields.io/github/forks/yagizeraslan/DeepSeek-Unity?style=social">
+  </a>
+  <a href="https://github.com/yagizeraslan/DeepSeek-Unity/issues">
+    <img alt="GitHub issues" src="https://img.shields.io/github/issues/yagizeraslan/DeepSeek-Unity">
+  </a>
 </p>
 
 # 🧠 DeepSeek API for Unity
