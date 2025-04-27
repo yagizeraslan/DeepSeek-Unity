@@ -3,7 +3,6 @@ using UnityEngine;
 using System.IO;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
-using UnityEditor.PackageManager.Events;
 
 [InitializeOnLoad]
 public static class DeepSeekSetupWizard
