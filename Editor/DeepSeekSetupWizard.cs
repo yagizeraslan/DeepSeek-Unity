@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 using System.IO;
+using UnityEditor.PackageManager.Events;
 
 [InitializeOnLoad]
 public static class DeepSeekSetupWizard
@@ -8,7 +9,8 @@ public static class DeepSeekSetupWizard
     static DeepSeekSetupWizard()
     {
         EditorApplication.update += TryShowSetupWizard;
-        EditorApplication.update += PostCompilationStep; // NEW: Listen after compilation
+        EditorApplication.update += PostCompilationStep;
+        Events.registeredPackagesChanged += OnPackagesChanged;
     }
 
     private static void TryShowSetupWizard()
@@ -36,12 +38,22 @@ public static class DeepSeekSetupWizard
             EditorPrefs.DeleteKey("DeepSeek_WaitingForDefine");
 
             Debug.Log("[DeepSeek] Post-compilation: Adding define symbol for UniTask...");
-
             DeepSeekSetupWindow.AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
             UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
         }
 
-        EditorApplication.update -= PostCompilationStep; // Only need to run once
+        EditorApplication.update -= PostCompilationStep;
+    }
+
+    private static void OnPackagesChanged(PackageRegistrationEventArgs args)
+    {
+        if (EditorPrefs.GetBool("DeepSeek_WaitingForPackage", false))
+        {
+            EditorPrefs.DeleteKey("DeepSeek_WaitingForPackage");
+
+            Debug.Log("[DeepSeek] 📦 UniTask package import detected. Forcing recompile...");
+            UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+        }
     }
 }
 
@@ -132,13 +144,11 @@ public class DeepSeekSetupWindow : EditorWindow
         }
 
         AssetDatabase.Refresh();
-        UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
-
-        // Tell next reload that we are waiting for define adding
+        EditorPrefs.SetBool("DeepSeek_WaitingForPackage", true);
         EditorPrefs.SetBool("DeepSeek_WaitingForDefine", true);
 
-        Debug.Log("[DeepSeek] Refreshing assets and requesting script compilation...");
-        Debug.Log("[DeepSeek] ⚡ Please wait for Unity to finish reloading...");
+        Debug.Log("[DeepSeek] Refreshing assets and monitoring package installation...");
+        Debug.Log("[DeepSeek] ⚡ Please wait, everything will complete automatically!");
     }
 
     public static void AddDefineSymbol(string symbol)
