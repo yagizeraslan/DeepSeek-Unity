@@ -55,11 +55,13 @@ public static class DeepSeekSetupWizard
         {
             EditorApplication.update -= CheckIfUniTaskImported;
 
-            Debug.Log("[DeepSeek] 📦 UniTask package detected! Creating marker and requesting script recompilation...");
+            Debug.Log("[DeepSeek] 📦 UniTask package detected! Delaying marker creation...");
 
-            CreateWaitingForDefineMarker(); // ✅ Create marker AFTER UniTask is confirmed
-
-            UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+            EditorApplication.delayCall += () =>
+            {
+                CreateWaitingForDefineMarker();  // ✅ Delay marker by 1 frame
+                UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+            };
         }
     }
 
