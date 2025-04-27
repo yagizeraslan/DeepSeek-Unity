@@ -179,6 +179,17 @@ DeepSeekModel.DeepSeekR1
 
 ---
 
+## 💖 Support This Project
+
+If you find **DeepSeek-Unity** useful, please consider supporting its development!
+
+- [Become a sponsor on GitHub Sponsors](https://github.com/sponsors/yagizeraslan)
+- [Buy me a coffee on Ko-fi](https://ko-fi.com/yagizeraslan)
+
+Your support helps me continue maintaining and improving this project. Thank you! 🚀
+
+---
+
 ## 📄 License
 
 Unofficial integration. DeepSeek™ is a trademark of Hangzhou DeepSeek Artificial Intelligence Co., Ltd.
