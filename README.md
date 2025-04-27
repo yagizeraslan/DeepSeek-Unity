@@ -1,4 +1,5 @@
 <p align="center">
+  <!-- Top small badges -->
   <a href="https://unity.com/releases/editor/whats-new/2020.3.0">
     <img alt="Unity 2020.3+" src="https://img.shields.io/badge/Unity-2020.3%2B-green?logo=unity&logoColor=white">
   </a>
@@ -8,7 +9,17 @@
   <a href="https://github.com/sponsors/yagizeraslan">
     <img alt="Sponsor" src="https://img.shields.io/badge/Sponsor-❤-ff69b4">
   </a>
+  <a href="https://github.com/yagizeraslan/DeepSeek-Unity/releases">
+    <img alt="Release" src="https://img.shields.io/github/v/release/yagizeraslan/DeepSeek-Unity">
+  </a>
+  <a href="https://github.com/yagizeraslan/DeepSeek-Unity/commits/main">
+    <img alt="Last Commit" src="https://img.shields.io/github/last-commit/yagizeraslan/DeepSeek-Unity">
+  </a>
+  <img alt="Maintenance" src="https://img.shields.io/badge/Maintained-Yes-brightgreen">
+  <img alt="UPM Compatible" src="https://img.shields.io/badge/UPM-Compatible-brightgreen">
   <br/>
+  
+  <!-- Bottom bigger badges -->
   <a href="https://github.com/yagizeraslan/DeepSeek-Unity/stargazers">
     <img alt="GitHub stars" src="https://img.shields.io/github/stars/yagizeraslan/DeepSeek-Unity?style=social">
   </a>
@@ -16,8 +27,10 @@
     <img alt="GitHub forks" src="https://img.shields.io/github/forks/yagizeraslan/DeepSeek-Unity?style=social">
   </a>
   <a href="https://github.com/yagizeraslan/DeepSeek-Unity/issues">
-    <img alt="GitHub issues" src="https://img.shields.io/github/issues/yagizeraslan/DeepSeek-Unity">
+    <img alt="GitHub issues" src="https://img.shields.io/github/issues/yagizeraslan/DeepSeek-Unity?style=social">
   </a>
+  <img alt="Windows" src="https://img.shields.io/badge/Platform-Windows-blue">
+  <img alt="WebGL" src="https://img.shields.io/badge/Platform-WebGL-orange">
 </p>
 
 # 🧠 DeepSeek API for Unity
