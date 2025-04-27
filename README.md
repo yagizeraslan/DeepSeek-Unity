@@ -1,8 +1,9 @@
 <p align="center">
-  <!-- Top small badges -->
+  <!-- Top small clean badges -->
   <a href="https://unity.com/releases/editor/whats-new/2020.3.0">
     <img alt="Unity 2020.3+" src="https://img.shields.io/badge/Unity-2020.3%2B-green?logo=unity&logoColor=white">
   </a>
+  <img alt="UPM Compatible" src="https://img.shields.io/badge/UPM-Compatible-brightgreen">
   <a href="https://opensource.org/licenses/MIT">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg">
   </a>
@@ -16,10 +17,9 @@
     <img alt="Last Commit" src="https://img.shields.io/github/last-commit/yagizeraslan/DeepSeek-Unity">
   </a>
   <img alt="Maintenance" src="https://img.shields.io/badge/Maintained-Yes-brightgreen">
-  <img alt="UPM Compatible" src="https://img.shields.io/badge/UPM-Compatible-brightgreen">
   <br/>
   
-  <!-- Bottom bigger badges -->
+  <!-- Bottom bigger social + platform badges -->
   <a href="https://github.com/yagizeraslan/DeepSeek-Unity/stargazers">
     <img alt="GitHub stars" src="https://img.shields.io/github/stars/yagizeraslan/DeepSeek-Unity?style=social">
   </a>
@@ -31,6 +31,8 @@
   </a>
   <img alt="Windows" src="https://img.shields.io/badge/Platform-Windows-blue">
   <img alt="WebGL" src="https://img.shields.io/badge/Platform-WebGL-orange">
+  <img alt="Android" src="https://img.shields.io/badge/Platform-Android-green">
+  <img alt="iOS" src="https://img.shields.io/badge/Platform-iOS-lightgrey">
 </p>
 
 # 🧠 DeepSeek API for Unity
