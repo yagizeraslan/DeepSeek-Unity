@@ -19,10 +19,10 @@
   <a href="https://github.com/yagizeraslan/DeepSeek-Unity">
     <img alt="Code Size" src="https://img.shields.io/github/languages/code-size/yagizeraslan/DeepSeek-Unity">
   </a>
-  <img alt="Maintenance" src="https://img.shields.io/badge/Maintained-Yes-brightgreen">
   <br/>
   
   <!-- Bottom bigger social + platform badges -->
+  <img alt="Maintenance" src="https://img.shields.io/badge/Maintained-Yes-brightgreen">
   <a href="https://github.com/yagizeraslan/DeepSeek-Unity/stargazers">
     <img alt="GitHub stars" src="https://img.shields.io/github/stars/yagizeraslan/DeepSeek-Unity?style=social">
   </a>
