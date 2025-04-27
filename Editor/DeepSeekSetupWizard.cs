@@ -9,7 +9,6 @@ public static class DeepSeekSetupWizard
     static DeepSeekSetupWizard()
     {
         EditorApplication.update += TryShowSetupWizard;
-        EditorApplication.update += PostCompilationStep;
     }
 
     private static void TryShowSetupWizard()
@@ -25,59 +24,6 @@ public static class DeepSeekSetupWizard
     private static bool IsUniTaskInstalled()
     {
         return Directory.Exists(Path.Combine("Packages", "com.cysharp.unitask"));
-    }
-
-    private static void PostCompilationStep()
-    {
-        if (EditorApplication.isCompiling)
-            return;
-
-        string markerPath = Path.Combine(Application.dataPath, "DeepSeek_WaitingForDefine.txt");
-
-        if (File.Exists(markerPath))
-        {
-            File.Delete(markerPath);
-            AssetDatabase.Refresh();
-
-            Debug.Log("[DeepSeek] ✅ Marker file found. Adding define symbol for UniTask...");
-            DeepSeekSetupWindow.AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
-
-            UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
-            DeepSeekSetupWindow.TryCloseWindow();
-        }
-
-        EditorApplication.update -= PostCompilationStep;
-    }
-
-    public static void CheckIfUniTaskImported()
-    {
-        if (Directory.Exists(Path.Combine("Packages", "com.cysharp.unitask")))
-        {
-            EditorApplication.update -= CheckIfUniTaskImported;
-
-            Debug.Log("[DeepSeek] 📦 UniTask package detected! Delaying marker creation...");
-
-            EditorApplication.delayCall += () =>
-            {
-                CreateWaitingForDefineMarker();  // ✅ Delay marker by 1 frame
-                UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
-            };
-        }
-    }
-
-    private static void CreateWaitingForDefineMarker()
-    {
-        string markerPath = Path.Combine(Application.dataPath, "DeepSeek_WaitingForDefine.txt");
-
-        try
-        {
-            File.WriteAllText(markerPath, "waiting");
-            AssetDatabase.ImportAsset("Assets/DeepSeek_WaitingForDefine.txt");
-        }
-        catch (System.Exception ex)
-        {
-            Debug.LogError($"[DeepSeek] ❌ Failed to create marker file: {ex.Message}");
-        }
     }
 }
 
@@ -118,6 +64,12 @@ public class DeepSeekSetupWindow : EditorWindow
         if (isUniTaskInstalled)
         {
             EditorGUILayout.HelpBox("✅ UniTask is already installed!", MessageType.Info);
+
+            if (GUILayout.Button("Add DeepSeek Define Symbol"))
+            {
+                AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
+                Debug.Log("[DeepSeek] ➕ DeepSeek define symbol added.");
+            }
         }
         else
         {
@@ -172,10 +124,8 @@ public class DeepSeekSetupWindow : EditorWindow
         AssetDatabase.Refresh();
         Client.Resolve();
 
-        EditorApplication.update += DeepSeekSetupWizard.CheckIfUniTaskImported;
-
         Debug.Log("[DeepSeek] 🔄 Refreshing assets and resolving packages...");
-        Debug.Log("[DeepSeek] ⚡ Please wait, UniTask will be installed automatically!");
+        Debug.Log("[DeepSeek] ⚡ Please wait for Unity to finish reloading.");
     }
 
     public static void AddDefineSymbol(string symbol)
@@ -195,15 +145,6 @@ public class DeepSeekSetupWindow : EditorWindow
         else
         {
             Debug.Log($"[DeepSeek] ✅ Scripting Define Symbol '{symbol}' already exists.");
-        }
-    }
-
-    public static void TryCloseWindow()
-    {
-        if (instance != null)
-        {
-            instance.Close();
-            Debug.Log("[DeepSeek] 🎉 Setup Wizard closed. UniTask installation completed!");
         }
     }
 }
