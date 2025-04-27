@@ -57,8 +57,6 @@
 4. Paste:
     
     ```csharp
-    csharp
-    CopyEdit
     https://github.com/yagizeraslan/DeepSeek-Unity.git
     
     ```
@@ -157,8 +155,6 @@ Use `CreateChatCompletionStreaming` with a callback for partial updates. (Docs c
 ### 💬 Multiple Models
 
 ```csharp
-csharp
-CopyEdit
 DeepSeekModel.DeepSeek_V3
 DeepSeekModel.DeepSeek_R1
 
