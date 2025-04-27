@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 using System.IO;
+using UnityEditor.PackageManager;
 
 [InitializeOnLoad]
 public static class DeepSeekSetupWizard
@@ -37,7 +38,11 @@ public static class DeepSeekSetupWizard
 
             Debug.Log("[DeepSeek] Post-compilation: Adding define symbol for UniTask...");
             DeepSeekSetupWindow.AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
+
             UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+
+            // Close wizard if it is open
+            DeepSeekSetupWindow.TryCloseWindow();
         }
 
         EditorApplication.update -= PostCompilationStep;
@@ -49,8 +54,9 @@ public static class DeepSeekSetupWizard
         {
             EditorApplication.update -= CheckIfUniTaskImported;
 
-            Debug.Log("[DeepSeek] 📦 UniTask package detected after install! Forcing recompile...");
+            Debug.Log("[DeepSeek] 📦 UniTask package detected! Forcing recompile...");
             EditorPrefs.SetBool("DeepSeek_WaitingForDefine", true);
+
             UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
         }
     }
@@ -59,6 +65,7 @@ public static class DeepSeekSetupWizard
 public class DeepSeekSetupWindow : EditorWindow
 {
     private static bool isUniTaskInstalled;
+    private static DeepSeekSetupWindow instance;
 
     [MenuItem("DeepSeek/Install UniTask Manually")]
     public static void InstallUniTaskManually()
@@ -74,12 +81,13 @@ public class DeepSeekSetupWindow : EditorWindow
 
     public static void ShowWindow()
     {
-        var window = GetWindow<DeepSeekSetupWindow>("DeepSeek Setup Wizard");
-        window.Show();
+        instance = GetWindow<DeepSeekSetupWindow>("DeepSeek Setup Wizard");
+        instance.Show();
     }
 
     private void OnEnable()
     {
+        instance = this;
         isUniTaskInstalled = Directory.Exists(Path.Combine("Packages", "com.cysharp.unitask"));
     }
 
@@ -143,12 +151,13 @@ public class DeepSeekSetupWindow : EditorWindow
         }
 
         AssetDatabase.Refresh();
+        Client.Resolve(); // 🚀 Force Unity to immediately recheck UPM
 
-        // Start polling if UniTask imported
+        // Start polling until package appears
         EditorApplication.update += DeepSeekSetupWizard.CheckIfUniTaskImported;
 
-        Debug.Log("[DeepSeek] Refreshing assets and waiting for UniTask package...");
-        Debug.Log("[DeepSeek] ⚡ Please wait, recompilation will happen automatically!");
+        Debug.Log("[DeepSeek] Refreshing assets and resolving packages...");
+        Debug.Log("[DeepSeek] ⚡ Please wait, everything will complete automatically!");
     }
 
     public static void AddDefineSymbol(string symbol)
@@ -168,6 +177,15 @@ public class DeepSeekSetupWindow : EditorWindow
         else
         {
             Debug.Log($"[DeepSeek] Scripting Define Symbol '{symbol}' already exists.");
+        }
+    }
+
+    public static void TryCloseWindow()
+    {
+        if (instance != null)
+        {
+            instance.Close();
+            Debug.Log("[DeepSeek] 🎉 Setup Wizard closed. Installation completed!");
         }
     }
 }
