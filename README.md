@@ -88,7 +88,7 @@ To test everything:
 3. Open:
     
     ```csharp
-    Assets/Samples/DeepSeek API for Unity/1.0.0/DeepSeek Chat Example/Scenes/DeepSeek-Chat.unity
+    Assets/Samples/DeepSeek API for Unity/1.0.1/DeepSeek Chat Example/Scenes/DeepSeek-Chat.unity
 
     ```
     
