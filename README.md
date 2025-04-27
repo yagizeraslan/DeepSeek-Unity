@@ -16,7 +16,6 @@
 - 🔐 Secure API key storage (runtime-safe)
 - ⚙️ Built with Unity Package Manager (UPM)
 - 🧪 Includes sample scene & prefabs
-- 📦 Asset Store and GitHub ready
 
 ---
 
