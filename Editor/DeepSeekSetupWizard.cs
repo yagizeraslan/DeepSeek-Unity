@@ -29,8 +29,9 @@ public static class DeepSeekSetupWizard
 
 public class DeepSeekSetupWindow : EditorWindow
 {
-    private static bool isUniTaskInstalled;
     private static DeepSeekSetupWindow instance;
+    private static bool isUniTaskInstalled;
+    private static bool defineSymbolAdded;
 
     [MenuItem("DeepSeek/Install UniTask Manually")]
     public static void InstallUniTaskManually()
@@ -53,7 +54,13 @@ public class DeepSeekSetupWindow : EditorWindow
     private void OnEnable()
     {
         instance = this;
+        RefreshState();
+    }
+
+    private static void RefreshState()
+    {
         isUniTaskInstalled = Directory.Exists(Path.Combine("Packages", "com.cysharp.unitask"));
+        defineSymbolAdded = PlayerSettings.GetScriptingDefineSymbolsForGroup(EditorUserBuildSettings.selectedBuildTargetGroup).Contains("DEEPSEEK_HAS_UNITASK");
     }
 
     private void OnGUI()
@@ -61,26 +68,36 @@ public class DeepSeekSetupWindow : EditorWindow
         GUILayout.Label("DeepSeek Setup Wizard", EditorStyles.boldLabel);
         GUILayout.Space(10);
 
-        if (isUniTaskInstalled)
+        // Install UniTask Button
+        EditorGUI.BeginDisabledGroup(isUniTaskInstalled);
+        if (GUILayout.Button(isUniTaskInstalled ? "✅ UniTask Installed" : "Install UniTask"))
         {
-            EditorGUILayout.HelpBox("✅ UniTask is already installed!", MessageType.Info);
-
-            if (GUILayout.Button("Add DeepSeek Define Symbol"))
-            {
-                CloseSetupWindow(); // Close first
-                AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
-                Debug.Log("[DeepSeek] ➕ DeepSeek define symbol added and setup wizard closed.");
-            }
+            InstallUniTask();
+            RefreshState();
         }
-        else
+        EditorGUI.EndDisabledGroup();
+
+        GUILayout.Space(5);
+
+        // Add Define Symbol Button
+        EditorGUI.BeginDisabledGroup(!isUniTaskInstalled || defineSymbolAdded);
+        if (GUILayout.Button(defineSymbolAdded ? "✅ Define Symbol Added" : "Add DeepSeek Define Symbol"))
         {
-            EditorGUILayout.HelpBox("⚠️ UniTask is required for streaming support.", MessageType.Warning);
-
-            if (GUILayout.Button("Install UniTask"))
-            {
-                InstallUniTask();
-            }
+            AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
+            RefreshState();
         }
+        EditorGUI.EndDisabledGroup();
+
+        GUILayout.Space(5);
+
+        // Done Button
+        EditorGUI.BeginDisabledGroup(!isUniTaskInstalled || !defineSymbolAdded);
+        if (GUILayout.Button("DONE!"))
+        {
+            Debug.Log("[DeepSeek] 🎉 Setup Complete! Closing Wizard.");
+            CloseSetupWindow();
+        }
+        EditorGUI.EndDisabledGroup();
     }
 
     private static void InstallUniTask()
