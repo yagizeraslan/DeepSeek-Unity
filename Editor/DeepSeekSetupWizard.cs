@@ -1,6 +1,8 @@
 using UnityEditor;
 using UnityEngine;
 using System.IO;
+using UnityEditor.PackageManager;
+using UnityEditor.PackageManager.Requests;
 using UnityEditor.PackageManager.Events;
 
 [InitializeOnLoad]
@@ -10,7 +12,7 @@ public static class DeepSeekSetupWizard
     {
         EditorApplication.update += TryShowSetupWizard;
         EditorApplication.update += PostCompilationStep;
-        Events.registeredPackagesChanged += OnPackagesChanged;
+        Events.registeredPackages += OnPackagesChanged;
     }
 
     private static void TryShowSetupWizard()
@@ -144,6 +146,8 @@ public class DeepSeekSetupWindow : EditorWindow
         }
 
         AssetDatabase.Refresh();
+
+        // Set flags for package install + define symbol later
         EditorPrefs.SetBool("DeepSeek_WaitingForPackage", true);
         EditorPrefs.SetBool("DeepSeek_WaitingForDefine", true);
 
