@@ -8,6 +8,7 @@ public static class DeepSeekSetupWizard
     static DeepSeekSetupWizard()
     {
         EditorApplication.update += TryShowSetupWizard;
+        EditorApplication.update += PostCompilationStep; // NEW: Listen after compilation
     }
 
     private static void TryShowSetupWizard()
@@ -24,12 +25,29 @@ public static class DeepSeekSetupWizard
     {
         return Directory.Exists(Path.Combine("Packages", "com.cysharp.unitask"));
     }
+
+    private static void PostCompilationStep()
+    {
+        if (EditorApplication.isCompiling)
+            return;
+
+        if (EditorPrefs.GetBool("DeepSeek_WaitingForDefine", false))
+        {
+            EditorPrefs.DeleteKey("DeepSeek_WaitingForDefine");
+
+            Debug.Log("[DeepSeek] Post-compilation: Adding define symbol for UniTask...");
+
+            DeepSeekSetupWindow.AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
+            UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+        }
+
+        EditorApplication.update -= PostCompilationStep; // Only need to run once
+    }
 }
 
 public class DeepSeekSetupWindow : EditorWindow
 {
     private static bool isUniTaskInstalled;
-    private static bool waitingForCompile = false;
 
     [MenuItem("DeepSeek/Install UniTask Manually")]
     public static void InstallUniTaskManually()
@@ -62,10 +80,6 @@ public class DeepSeekSetupWindow : EditorWindow
         if (isUniTaskInstalled)
         {
             EditorGUILayout.HelpBox("✅ UniTask is already installed!", MessageType.Info);
-        }
-        else if (waitingForCompile)
-        {
-            EditorGUILayout.HelpBox("⚙️ Installing UniTask... Please wait for Unity to recompile.", MessageType.Info);
         }
         else
         {
@@ -120,28 +134,14 @@ public class DeepSeekSetupWindow : EditorWindow
         AssetDatabase.Refresh();
         UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
 
-        waitingForCompile = true;
-        EditorApplication.update += WaitForCompile;
+        // Tell next reload that we are waiting for define adding
+        EditorPrefs.SetBool("DeepSeek_WaitingForDefine", true);
 
         Debug.Log("[DeepSeek] Refreshing assets and requesting script compilation...");
         Debug.Log("[DeepSeek] ⚡ Please wait for Unity to finish reloading...");
     }
 
-    private static void WaitForCompile()
-    {
-        if (EditorApplication.isCompiling)
-            return;
-
-        EditorApplication.update -= WaitForCompile;
-        waitingForCompile = false;
-
-        AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
-        UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
-
-        Debug.Log("[DeepSeek] ✅ UniTask installation complete! Define symbol added and final compile requested.");
-    }
-
-    private static void AddDefineSymbol(string symbol)
+    public static void AddDefineSymbol(string symbol)
     {
         var buildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
         string defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
