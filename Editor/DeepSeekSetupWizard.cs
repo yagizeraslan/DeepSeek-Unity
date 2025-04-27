@@ -67,8 +67,9 @@ public class DeepSeekSetupWindow : EditorWindow
 
             if (GUILayout.Button("Add DeepSeek Define Symbol"))
             {
+                CloseSetupWindow(); // Close first
                 AddDefineSymbol("DEEPSEEK_HAS_UNITASK");
-                Debug.Log("[DeepSeek] ➕ DeepSeek define symbol added.");
+                Debug.Log("[DeepSeek] ➕ DeepSeek define symbol added and setup wizard closed.");
             }
         }
         else
@@ -145,6 +146,15 @@ public class DeepSeekSetupWindow : EditorWindow
         else
         {
             Debug.Log($"[DeepSeek] ✅ Scripting Define Symbol '{symbol}' already exists.");
+        }
+    }
+
+    private static void CloseSetupWindow()
+    {
+        if (instance != null)
+        {
+            instance.Close();
+            instance = null;
         }
     }
 }
