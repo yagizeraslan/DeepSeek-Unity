@@ -1,8 +1,6 @@
 using UnityEditor;
 using UnityEngine;
 using System.IO;
-using UnityEditor.PackageManager;
-using UnityEditor.PackageManager.Requests;
 
 [InitializeOnLoad]
 public static class DeepSeekSetupWizard
@@ -11,7 +9,6 @@ public static class DeepSeekSetupWizard
     {
         EditorApplication.update += TryShowSetupWizard;
         EditorApplication.update += PostCompilationStep;
-        Events.registeredPackages += OnPackagesChanged;
     }
 
     private static void TryShowSetupWizard()
@@ -46,13 +43,14 @@ public static class DeepSeekSetupWizard
         EditorApplication.update -= PostCompilationStep;
     }
 
-    private static void OnPackagesChanged(PackageRegistrationEventArgs args)
+    public static void CheckIfUniTaskImported()
     {
-        if (EditorPrefs.GetBool("DeepSeek_WaitingForPackage", false))
+        if (Directory.Exists(Path.Combine("Packages", "com.cysharp.unitask")))
         {
-            EditorPrefs.DeleteKey("DeepSeek_WaitingForPackage");
+            EditorApplication.update -= CheckIfUniTaskImported;
 
-            Debug.Log("[DeepSeek] 📦 UniTask package import detected. Forcing recompile...");
+            Debug.Log("[DeepSeek] 📦 UniTask package detected after install! Forcing recompile...");
+            EditorPrefs.SetBool("DeepSeek_WaitingForDefine", true);
             UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
         }
     }
@@ -146,12 +144,11 @@ public class DeepSeekSetupWindow : EditorWindow
 
         AssetDatabase.Refresh();
 
-        // Set flags for package install + define symbol later
-        EditorPrefs.SetBool("DeepSeek_WaitingForPackage", true);
-        EditorPrefs.SetBool("DeepSeek_WaitingForDefine", true);
+        // Start polling if UniTask imported
+        EditorApplication.update += DeepSeekSetupWizard.CheckIfUniTaskImported;
 
-        Debug.Log("[DeepSeek] Refreshing assets and monitoring package installation...");
-        Debug.Log("[DeepSeek] ⚡ Please wait, everything will complete automatically!");
+        Debug.Log("[DeepSeek] Refreshing assets and waiting for UniTask package...");
+        Debug.Log("[DeepSeek] ⚡ Please wait, recompilation will happen automatically!");
     }
 
     public static void AddDefineSymbol(string symbol)
