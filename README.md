@@ -10,9 +10,6 @@
   <a href="https://github.com/sponsors/yagizeraslan">
     <img alt="Sponsor" src="https://img.shields.io/badge/Sponsor-❤-ff69b4">
   </a>
-  <a href="https://github.com/yagizeraslan/DeepSeek-Unity/releases">
-    <img alt="Release" src="https://img.shields.io/github/v/release/yagizeraslan/DeepSeek-Unity">
-  </a>
   <a href="https://github.com/yagizeraslan/DeepSeek-Unity/commits/main">
     <img alt="Last Commit" src="https://img.shields.io/github/last-commit/yagizeraslan/DeepSeek-Unity">
   </a>
