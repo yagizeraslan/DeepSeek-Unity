@@ -24,7 +24,8 @@ namespace YagizEraslan.DeepSeek.Unity
                 Debug.LogError("DeepSeekChatController requires DeepSeekApi instance, not just IDeepSeekApi interface!");
             }
             this.deepSeekApi = concreteApi;
-            this.streamingApi = new DeepSeekStreamingApi(concreteApi.ApiKey);
+            this.deepSeekApi = concreteApi;
+            this.streamingApi = new DeepSeekStreamingApi();
             this.selectedModelName = modelName;
             this.onMessageUpdate = messageCallback;
             this.onStreamingUpdate = streamingCallback;

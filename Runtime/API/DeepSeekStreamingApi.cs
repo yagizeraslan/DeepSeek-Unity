@@ -4,7 +4,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace YagizEraslan.DeepSeek.Unity.API
+namespace YagizEraslan.DeepSeek.Unity
 {
     public class DeepSeekStreamingApi : MonoBehaviour
     {
