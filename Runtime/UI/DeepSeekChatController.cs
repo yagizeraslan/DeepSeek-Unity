@@ -1,57 +1,53 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
-using YagizEraslan.DeepSeek.Unity.API;
-using YagizEraslan.DeepSeek.Unity.Data;
 
 namespace YagizEraslan.DeepSeek.Unity
 {
-    public class DeepSeekChatController : MonoBehaviour
+    public class DeepSeekChatController
     {
-        [Header("UI References")]
-        [SerializeField] private TMP_InputField inputField;
-        [SerializeField] private GameObject sentMessagePrefab;
-        [SerializeField] private GameObject receivedMessagePrefab;
-        [SerializeField] private Transform messageContainer;
+        private readonly DeepSeekStreamingApi streamingApi;
+        private readonly DeepSeekApi deepSeekApi;
+        private readonly List<ChatMessage> history = new();
+        private readonly Action<ChatMessage, bool> onMessageUpdate;
+        private readonly Action<string> onStreamingUpdate;
+        private readonly string selectedModelName;
+        private readonly bool useStreaming;
 
-        private List<ChatMessage> history = new List<ChatMessage>();
-        private IDeepSeekApi api;
-        private string selectedModelName;
-        private Action<ChatMessage, bool> addMessageCallback;
-        private Action<string> onStreamUpdate;
-        private bool useStreaming;
+        private string currentStreamContent = "";
 
-        private DeepSeekStreamingApi streamingApi;
-
-        public DeepSeekChatController(
-            IDeepSeekApi api,
-            string modelName,
-            Action<ChatMessage, bool> addMessageCallback,
-            Action<string> onStreamUpdate,
-            bool useStreaming = false)
+        public DeepSeekChatController(IDeepSeekApi api, string modelName, Action<ChatMessage, bool> messageCallback, Action<string> streamingCallback, bool useStreaming)
         {
-            this.api = api;
+            var concreteApi = api as DeepSeekApi;
+            if (concreteApi == null)
+            {
+                Debug.LogError("DeepSeekChatController requires DeepSeekApi instance, not just IDeepSeekApi interface!");
+            }
+            this.deepSeekApi = concreteApi;
+            this.streamingApi = new DeepSeekStreamingApi(concreteApi.ApiKey);
             this.selectedModelName = modelName;
-            this.addMessageCallback = addMessageCallback;
-            this.onStreamUpdate = onStreamUpdate;
+            this.onMessageUpdate = messageCallback;
+            this.onStreamingUpdate = streamingCallback;
             this.useStreaming = useStreaming;
         }
 
-        private void Awake()
+        public void SendUserMessage(string userMessage)
         {
-            streamingApi = gameObject.AddComponent<DeepSeekStreamingApi>();
-        }
+            if (string.IsNullOrWhiteSpace(userMessage))
+            {
+                Debug.LogWarning("User message is empty.");
+                return;
+            }
 
-        public void SendUserMessage(string messageText)
-        {
-            if (string.IsNullOrEmpty(messageText)) return;
+            var userChat = new ChatMessage
+            {
+                role = "user",
+                content = userMessage
+            };
+            history.Add(userChat);
+            onMessageUpdate?.Invoke(userChat, true);
 
-            ChatMessage userMessage = new ChatMessage("user", messageText);
-            addMessageCallback?.Invoke(userMessage, true);
-            history.Add(userMessage);
-
-            ChatCompletionRequest request = new ChatCompletionRequest
+            var request = new ChatCompletionRequest
             {
                 model = selectedModelName,
                 messages = history.ToArray(),
@@ -60,32 +56,43 @@ namespace YagizEraslan.DeepSeek.Unity
 
             if (useStreaming)
             {
-                streamingApi.CreateChatCompletionStream(request, api.GetApiKey(), HandleStreamUpdate);
+                currentStreamContent = "";
+                streamingApi.CreateChatCompletionStream(
+                    request,
+                    deepSeekApi.ApiKey,
+                    partialToken =>
+                    {
+                        currentStreamContent += partialToken;
+                        onStreamingUpdate?.Invoke(currentStreamContent);
+                    });
             }
             else
             {
-                StartCoroutine(SendNonStreamingRequest(request));
+                HandleFullResponse(request);
             }
         }
 
-        private IEnumerator<UnityEngine.WaitForSeconds> SendNonStreamingRequest(ChatCompletionRequest request)
+        private void HandleFullResponse(ChatCompletionRequest request)
         {
-            var task = api.CreateChatCompletion(request);
-            while (!task.IsCompleted) yield return new WaitForSeconds(0.1f);
-
-            var response = task.Result;
-            if (response != null && response.choices != null && response.choices.Length > 0)
+            try
             {
-                string reply = response.choices[0].message.content;
-                ChatMessage assistantMessage = new ChatMessage("assistant", reply);
-                addMessageCallback?.Invoke(assistantMessage, false);
-                history.Add(assistantMessage);
-            }
-        }
+                var awaitedResponse = deepSeekApi.CreateChatCompletion(request).Result;
 
-        private void HandleStreamUpdate(string newToken)
-        {
-            onStreamUpdate?.Invoke(newToken);
+                if (awaitedResponse != null && awaitedResponse.choices != null && awaitedResponse.choices.Length > 0)
+                {
+                    var aiMessage = awaitedResponse.choices[0].message;
+                    history.Add(aiMessage);
+                    onMessageUpdate?.Invoke(aiMessage, false);
+                }
+                else
+                {
+                    Debug.LogWarning("No response choices received from DeepSeek API.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error while sending message to DeepSeek API: {ex.Message}");
+            }
         }
     }
 }
