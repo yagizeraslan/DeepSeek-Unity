@@ -1,122 +1,94 @@
-#if DEEPSEEK_HAS_UNITASK
- using Cysharp.Threading.Tasks;
-#endif
-
+using System;
+using System.Collections;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
-using System;
-using System.Text;
-using System.IO;
-using System.Collections.Generic;
 
-namespace YagizEraslan.DeepSeek.Unity
+namespace YagizEraslan.DeepSeek.Unity.API
 {
-#if DEEPSEEK_HAS_UNITASK
-    public class DeepSeekStreamingApi
+    public class DeepSeekStreamingApi : MonoBehaviour
     {
-        private readonly string apiKey;
-        private readonly string apiUrl = "https://api.deepseek.com/chat/completions";
-
-        public DeepSeekStreamingApi(string apiKey)
+        public void CreateChatCompletionStream(ChatCompletionRequest request, string apiKey, Action<string> onStreamUpdate)
         {
-            this.apiKey = apiKey;
+            StartCoroutine(SendStreamingRequestCoroutine(request, apiKey, onStreamUpdate));
         }
 
-        public async UniTask StreamChatCompletionAsync(ChatCompletionRequest request, Action<string> onPartialMessage, Action onComplete)
+        private IEnumerator SendStreamingRequestCoroutine(ChatCompletionRequest request, string apiKey, Action<string> onStreamUpdate)
         {
             request.stream = true;
+            string json = JsonUtility.ToJson(request);
+            byte[] postData = Encoding.UTF8.GetBytes(json);
 
-            string jsonBody = JsonUtility.ToJson(request);
-
-            using (UnityWebRequest www = new UnityWebRequest(apiUrl, "POST"))
+            using UnityWebRequest requestStream = new UnityWebRequest("https://api.deepseek.com/chat/completions", "POST")
             {
-                byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
-                www.uploadHandler = new UploadHandlerRaw(bodyRaw);
-                www.downloadHandler = new DownloadHandlerBuffer();
-                www.SetRequestHeader("Content-Type", "application/json");
-                www.SetRequestHeader("Authorization", $"Bearer {apiKey}");
+                uploadHandler = new UploadHandlerRaw(postData),
+                downloadHandler = new DownloadHandlerBuffer()
+            };
 
-                await www.SendWebRequest().ToUniTask();
+            requestStream.SetRequestHeader("Content-Type", "application/json");
+            requestStream.SetRequestHeader("Authorization", $"Bearer {apiKey}");
 
-#if UNITY_WEBGL
-                if (www.result != UnityWebRequest.Result.Success)
+            var operation = requestStream.SendWebRequest();
+            string lastText = "";
+
+            while (!operation.isDone)
+            {
+                yield return null;
+
+                string currentText = requestStream.downloadHandler.text;
+                if (currentText.Length > lastText.Length)
                 {
-                    Debug.LogError($"Streaming request failed: {www.error}");
-                    return;
-                }
+                    string diff = currentText.Substring(lastText.Length);
+                    lastText = currentText;
 
-                var fullResponse = www.downloadHandler.text;
-                onPartialMessage?.Invoke(fullResponse);
-                onComplete?.Invoke();
-#else
-                if (www.result != UnityWebRequest.Result.Success)
-                {
-                    Debug.LogError($"Streaming request failed: {www.error}");
-                    return;
-                }
-
-                var rawData = www.downloadHandler.data;
-                string responseText = Encoding.UTF8.GetString(rawData);
-
-                foreach (var line in responseText.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries))
-                {
-                    if (line.StartsWith("data: "))
+                    string[] lines = diff.Split('\n');
+                    foreach (var line in lines)
                     {
-                        string json = line.Substring(6);
-
-                        if (json.Trim() == "[DONE]")
+                        if (line.StartsWith("data: "))
                         {
-                            onComplete?.Invoke();
-                            break;
-                        }
+                            string jsonChunk = line.Substring(6).Trim();
+                            if (jsonChunk == "[DONE]") yield break;
 
-                        try
-                        {
-                            var partial = JsonUtility.FromJson<StreamChunk>(json);
-                            if (partial.choices != null && partial.choices.Length > 0 && partial.choices[0].delta != null)
+                            try
                             {
-                                string deltaContent = partial.choices[0].delta.content;
-                                if (!string.IsNullOrEmpty(deltaContent))
+                                var parsed = JsonUtility.FromJson<StreamingDelta>(jsonChunk);
+                                string content = parsed?.choices?[0]?.delta?.content;
+                                if (!string.IsNullOrEmpty(content))
                                 {
-                                    onPartialMessage?.Invoke(deltaContent);
+                                    onStreamUpdate?.Invoke(content);
                                 }
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.LogError($"Failed parsing streamed chunk: {ex.Message}");
+                            catch (Exception ex)
+                            {
+                                Debug.LogWarning("DeepSeek: Failed to parse stream chunk: " + ex.Message);
+                            }
                         }
                     }
                 }
-#endif
+            }
+
+            if (requestStream.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("DeepSeek streaming failed: " + requestStream.error);
             }
         }
 
         [Serializable]
-        private class StreamChunk
+        private class StreamingDelta
         {
             public Choice[] choices;
-        }
 
-        [Serializable]
-        private class Choice
-        {
-            public Delta delta;
-        }
+            [Serializable]
+            public class Choice
+            {
+                public Delta delta;
+            }
 
-        [Serializable]
-        private class Delta
-        {
-            public string content;
+            [Serializable]
+            public class Delta
+            {
+                public string content;
+            }
         }
     }
-#else
-    public class DeepSeekStreamingApi
-    {
-        public DeepSeekStreamingApi(string apiKey)
-        {
-            Debug.LogError("UniTask not installed. Please install it via DeepSeek Setup Wizard.");
-        }
-    }
-#endif
 }

@@ -1,137 +1,91 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-
-#if DEEPSEEK_HAS_UNITASK
- using Cysharp.Threading.Tasks;
-#endif
+using TMPro;
+using YagizEraslan.DeepSeek.Unity.API;
+using YagizEraslan.DeepSeek.Unity.Data;
 
 namespace YagizEraslan.DeepSeek.Unity
 {
-    public class DeepSeekChatController
+    public class DeepSeekChatController : MonoBehaviour
     {
-        private readonly DeepSeekStreamingApi streamingApi;
-        private readonly DeepSeekApi deepSeekApi;
-        private readonly List<ChatMessage> history = new();
-        private readonly Action<ChatMessage, bool> onMessageUpdate;
-        private readonly Action<string> onStreamingUpdate;
-        private readonly string selectedModelName;
-        private readonly bool useStreaming;
+        [Header("UI References")]
+        [SerializeField] private TMP_InputField inputField;
+        [SerializeField] private GameObject sentMessagePrefab;
+        [SerializeField] private GameObject receivedMessagePrefab;
+        [SerializeField] private Transform messageContainer;
 
-        private string currentStreamContent = "";
+        private List<ChatMessage> history = new List<ChatMessage>();
+        private IDeepSeekApi api;
+        private string selectedModelName;
+        private Action<ChatMessage, bool> addMessageCallback;
+        private Action<string> onStreamUpdate;
+        private bool useStreaming;
 
-        public DeepSeekChatController(IDeepSeekApi api, string modelName, Action<ChatMessage, bool> messageCallback, Action<string> streamingCallback, bool useStreaming)
+        private DeepSeekStreamingApi streamingApi;
+
+        public DeepSeekChatController(
+            IDeepSeekApi api,
+            string modelName,
+            Action<ChatMessage, bool> addMessageCallback,
+            Action<string> onStreamUpdate,
+            bool useStreaming = false)
         {
-            var concreteApi = api as DeepSeekApi;
-            if (concreteApi == null)
-            {
-                Debug.LogError("DeepSeekChatController requires DeepSeekApi instance, not just IDeepSeekApi interface!");
-            }
-            this.deepSeekApi = concreteApi;
-            this.streamingApi = new DeepSeekStreamingApi(concreteApi.ApiKey);
+            this.api = api;
             this.selectedModelName = modelName;
-            this.onMessageUpdate = messageCallback;
-            this.onStreamingUpdate = streamingCallback;
+            this.addMessageCallback = addMessageCallback;
+            this.onStreamUpdate = onStreamUpdate;
             this.useStreaming = useStreaming;
         }
 
-        public void SendUserMessage(string userMessage)
+        private void Awake()
         {
-            if (string.IsNullOrWhiteSpace(userMessage))
-            {
-                Debug.LogWarning("User message is empty.");
-                return;
-            }
+            streamingApi = gameObject.AddComponent<DeepSeekStreamingApi>();
+        }
 
-            var userChat = new ChatMessage
-            {
-                role = "user",
-                content = userMessage
-            };
-            history.Add(userChat);
-            onMessageUpdate?.Invoke(userChat, true);
+        public void SendUserMessage(string messageText)
+        {
+            if (string.IsNullOrEmpty(messageText)) return;
 
-            var request = new ChatCompletionRequest
+            ChatMessage userMessage = new ChatMessage("user", messageText);
+            addMessageCallback?.Invoke(userMessage, true);
+            history.Add(userMessage);
+
+            ChatCompletionRequest request = new ChatCompletionRequest
             {
                 model = selectedModelName,
-                messages = history.ToArray()
+                messages = history.ToArray(),
+                stream = useStreaming
             };
 
-#if DEEPSEEK_HAS_UNITASK
             if (useStreaming)
             {
-                HandleStreamingResponse(request).Forget();
+                streamingApi.CreateChatCompletionStream(request, api.GetApiKey(), HandleStreamUpdate);
             }
             else
             {
-                HandleFullResponse(request).Forget();
+                StartCoroutine(SendNonStreamingRequest(request));
             }
-#else
-            HandleFullResponse(request);
-#endif
         }
 
-#if DEEPSEEK_HAS_UNITASK
-        private async UniTaskVoid HandleFullResponse(ChatCompletionRequest request)
-#else
-        private void HandleFullResponse(ChatCompletionRequest request)
-#endif
+        private IEnumerator<UnityEngine.WaitForSeconds> SendNonStreamingRequest(ChatCompletionRequest request)
         {
-            try
-            {
-#if DEEPSEEK_HAS_UNITASK
-                var awaitedResponse = await deepSeekApi.CreateChatCompletion(request);
-#else
-                var awaitedResponse = deepSeekApi.CreateChatCompletion(request).Result;
-#endif
+            var task = api.CreateChatCompletion(request);
+            while (!task.IsCompleted) yield return new WaitForSeconds(0.1f);
 
-                if (awaitedResponse != null && awaitedResponse.choices != null && awaitedResponse.choices.Length > 0)
-                {
-                    var aiMessage = awaitedResponse.choices[0].message;
-                    history.Add(aiMessage);
-                    onMessageUpdate?.Invoke(aiMessage, false);
-                }
-                else
-                {
-                    Debug.LogWarning("No response choices received from DeepSeek API.");
-                }
-            }
-            catch (Exception ex)
+            var response = task.Result;
+            if (response != null && response.choices != null && response.choices.Length > 0)
             {
-                Debug.LogError($"Error while sending message to DeepSeek API: {ex.Message}");
+                string reply = response.choices[0].message.content;
+                ChatMessage assistantMessage = new ChatMessage("assistant", reply);
+                addMessageCallback?.Invoke(assistantMessage, false);
+                history.Add(assistantMessage);
             }
         }
 
-#if DEEPSEEK_HAS_UNITASK
-        private async UniTaskVoid HandleStreamingResponse(ChatCompletionRequest request)
+        private void HandleStreamUpdate(string newToken)
         {
-            currentStreamContent = "";
-
-            try
-            {
-                await streamingApi.StreamChatCompletionAsync(
-                    request,
-                    (partialToken) =>
-                    {
-                        currentStreamContent += partialToken;
-                        onStreamingUpdate?.Invoke(currentStreamContent);
-                    },
-                    () =>
-                    {
-                        var finalMessage = new ChatMessage
-                        {
-                            role = "assistant",
-                            content = currentStreamContent
-                        };
-                        history.Add(finalMessage);
-                    }
-                );
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Error during streaming response from DeepSeek API: {ex.Message}");
-            }
+            onStreamUpdate?.Invoke(newToken);
         }
-#endif
     }
 }
