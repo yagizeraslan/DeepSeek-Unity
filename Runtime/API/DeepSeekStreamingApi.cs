@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -10,66 +9,70 @@ namespace YagizEraslan.DeepSeek.Unity
     {
         public void CreateChatCompletionStream(ChatCompletionRequest request, string apiKey, Action<string> onStreamUpdate)
         {
-            StartCoroutine(SendStreamingRequestCoroutine(request, apiKey, onStreamUpdate));
-        }
-
-        private IEnumerator SendStreamingRequestCoroutine(ChatCompletionRequest request, string apiKey, Action<string> onStreamUpdate)
-        {
             request.stream = true;
             string json = JsonUtility.ToJson(request);
-            byte[] postData = Encoding.UTF8.GetBytes(json);
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
 
-            using UnityWebRequest requestStream = new UnityWebRequest("https://api.deepseek.com/chat/completions", "POST")
-            {
-                uploadHandler = new UploadHandlerRaw(postData),
-                downloadHandler = new DownloadHandlerBuffer()
-            };
-
+            UnityWebRequest requestStream = new UnityWebRequest("https://api.deepseek.com/chat/completions", "POST");
+            requestStream.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            requestStream.downloadHandler = new StreamingDownloadHandler(onStreamUpdate);
             requestStream.SetRequestHeader("Content-Type", "application/json");
             requestStream.SetRequestHeader("Authorization", $"Bearer {apiKey}");
 
-            var operation = requestStream.SendWebRequest();
-            string lastText = "";
-
-            while (!operation.isDone)
+            requestStream.SendWebRequest().completed += _ =>
             {
-                yield return null;
-
-                string currentText = requestStream.downloadHandler.text;
-                if (currentText.Length > lastText.Length)
+                if (requestStream.result != UnityWebRequest.Result.Success)
                 {
-                    string diff = currentText.Substring(lastText.Length);
-                    lastText = currentText;
+                    Debug.LogError("DeepSeek stream request failed: " + requestStream.error);
+                }
+            };
+        }
 
-                    string[] lines = diff.Split('\n');
-                    foreach (var line in lines)
+        private class StreamingDownloadHandler : DownloadHandlerScript
+        {
+            private StringBuilder buffer = new();
+            private readonly Action<string> onStreamUpdate;
+
+            public StreamingDownloadHandler(Action<string> onStreamUpdate, int bufferSize = 1024)
+                : base(new byte[bufferSize])
+            {
+                this.onStreamUpdate = onStreamUpdate;
+            }
+
+            protected override bool ReceiveData(byte[] data, int dataLength)
+            {
+                if (data == null || dataLength == 0) return false;
+
+                string chunk = Encoding.UTF8.GetString(data, 0, dataLength);
+                buffer.Append(chunk);
+
+                string[] lines = buffer.ToString().Split('\n');
+                buffer.Clear();
+
+                foreach (string line in lines)
+                {
+                    if (line.StartsWith("data: "))
                     {
-                        if (line.StartsWith("data: "))
-                        {
-                            string jsonChunk = line.Substring(6).Trim();
-                            if (jsonChunk == "[DONE]") yield break;
+                        string payload = line.Substring(6).Trim();
+                        if (payload == "[DONE]") return true;
 
-                            try
+                        try
+                        {
+                            var parsed = JsonUtility.FromJson<StreamingDelta>(payload);
+                            string content = parsed?.choices?[0]?.delta?.content;
+                            if (!string.IsNullOrEmpty(content))
                             {
-                                var parsed = JsonUtility.FromJson<StreamingDelta>(jsonChunk);
-                                string content = parsed?.choices?[0]?.delta?.content;
-                                if (!string.IsNullOrEmpty(content))
-                                {
-                                    onStreamUpdate?.Invoke(content);
-                                }
+                                onStreamUpdate?.Invoke(content);
                             }
-                            catch (Exception ex)
-                            {
-                                Debug.LogWarning("DeepSeek: Failed to parse stream chunk: " + ex.Message);
-                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogWarning("Failed to parse stream chunk: " + e.Message);
                         }
                     }
                 }
-            }
 
-            if (requestStream.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError("DeepSeek streaming failed: " + requestStream.error);
+                return true;
             }
         }
 
