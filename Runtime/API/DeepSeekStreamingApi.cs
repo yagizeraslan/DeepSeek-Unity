@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 
 namespace YagizEraslan.DeepSeek.Unity
 {
-    public class DeepSeekStreamingApi : MonoBehaviour
+    public class DeepSeekStreamingApi
     {
         public void CreateChatCompletionStream(ChatCompletionRequest request, string apiKey, Action<string> onStreamUpdate)
         {
