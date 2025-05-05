@@ -130,7 +130,7 @@ To test everything:
     
 4. Press Play — you're live.
 
-🧠 **Runtime Adaptive:** You can change model type and streaming mode during play — the SDK picks up changes automatically for each new message.
+- You can change model type and streaming mode during play — the SDK picks up changes automatically for each new message.
 - You can also press **Enter** instead of clicking Send button — handy for fast testing.
 
 ---
