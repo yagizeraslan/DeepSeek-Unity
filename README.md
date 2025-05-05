@@ -46,7 +46,7 @@
 ## ✨ Features
 
 - ✅ Clean, reusable SDK for DeepSeek API
-- 🔄 Supports both streaming and non-streaming chat completions
+- 🔄 Supports true SSE-based streaming and non-streaming chat completions
 - 🧠 Compatible with multiple models (DeepSeek Chat, Reasoner)
 - 🎨 Modular & customizable UI chat component
 - 🔐 Secure API key storage (runtime-safe)
@@ -112,6 +112,10 @@
 3. (Optional) Create a `DeepSeekSettings` asset inside the wizard for runtime-safe storage.
 4. Drag the `DeepSeekChat` prefab from the sample into your scene.
 5. Hit Play — and chat with DeepSeek AI in seconds 💬
+
+🧠 You can change model type and streaming mode at runtime from the inspector — 
+the SDK automatically picks up the latest settings when you send a new message.
+Also, on the sample scene, you can send message via pressing Enter button as well instead of just clicking the Send button, small feature but good for testing.
 
 ---
 
@@ -186,7 +190,17 @@ void Start()
 
 DeepSeek-Unity supports real-time streaming using DeepSeek’s native API streaming features.
 
-Use `CreateChatCompletionStreaming` with a callback for partial updates. (Docs coming soon)
+DeepSeek-Unity supports **real-time streaming** using DeepSeek's official `stream: true` Server-Sent Events (SSE) endpoint.
+
+✅ Uses Unity's `DownloadHandlerScript` for chunked response handling  
+✅ UI updates per-token (no simulated typewriter effect)  
+✅ No coroutines, no external libraries — works natively in Unity
+
+To enable:
+- Check `Use Streaming` in the chat prefab or component
+- Partial responses will automatically stream into the UI
+
+📌 You can toggle streaming on/off at runtime.
 
 ### 💬 Multiple Models
 
@@ -202,19 +216,16 @@ DeepSeekModel.DeepSeek_R1
 
 **Can't add component?**
 
-→ Make sure you dragged `DeepSeekSettings` into the prefab or scene object.
-
-**Meta file warnings?**
-
-→ Fixed by including `.meta` files in the UPM package (already handled ✅)
+→ Make sure you dragged `DeepSeekSettings.asset` into the DeepSeekChat.cs's Config field.
 
 **Streaming not working?**
 
-→ Some Unity versions may require extra coroutine-based handling. Coming soon.
+→ Make sure you're on a platform that supports `DownloadHandlerScript` (Standalone or Editor).  
+→ WebGL and iOS may have platform limitations for live SSE streams.
 
-**Temporary compile errors after UniTask install?**
+**Seeing JSON parse warnings in streaming mode?**  
 
-→ Wait for Unity to recompile automatically, or press **Ctrl+R** to refresh scripts manually.
+→ These are normal during SSE — they occur when the parser receives partial chunks. They're automatically skipped and won't affect the final output.
 
 ---
 
