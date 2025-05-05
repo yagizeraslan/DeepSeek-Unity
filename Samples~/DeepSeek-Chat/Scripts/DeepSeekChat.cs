@@ -48,7 +48,7 @@ namespace YagizEraslan.DeepSeek.Unity
             var textComponent = instance.GetComponentInChildren<TMP_Text>();
             if (textComponent != null)
             {
-                textComponent.text = message.content;
+                textComponent.text = useStreaming ? "" : message.content;
             }
 
             if (!isUser && useStreaming)
@@ -66,7 +66,13 @@ namespace YagizEraslan.DeepSeek.Unity
             if (activeStreamingText != null)
             {
                 activeStreamingText.text = partialContent;
+                Debug.Log($"[UI] Updated streaming content: {partialContent}");
+            }
+            else
+            {
+                Debug.LogWarning("[UI] activeStreamingText is null — cannot update streaming content.");
             }
         }
+
     }
 }

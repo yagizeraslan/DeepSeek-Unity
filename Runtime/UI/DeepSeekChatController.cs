@@ -73,11 +73,11 @@ namespace YagizEraslan.DeepSeek.Unity
             }
         }
 
-        private void HandleFullResponse(ChatCompletionRequest request)
+        private async void HandleFullResponse(ChatCompletionRequest request)
         {
             try
             {
-                var awaitedResponse = deepSeekApi.CreateChatCompletion(request).Result;
+                var awaitedResponse = await deepSeekApi.CreateChatCompletion(request);
 
                 if (awaitedResponse != null && awaitedResponse.choices != null && awaitedResponse.choices.Length > 0)
                 {
