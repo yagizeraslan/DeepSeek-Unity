@@ -19,16 +19,19 @@ namespace YagizEraslan.DeepSeek.Unity
         [SerializeField] private Transform messageContainer;
 
         private DeepSeekChatController controller;
-        private TMP_Text activeStreamingText; // To update during real streaming
+        private TMP_Text activeStreamingText;
 
         private void Start()
         {
-            var api = new DeepSeekApi(config);
-            controller = new DeepSeekChatController(api, GetSelectedModelName(), AddFullMessageToUI, AppendStreamingCharacter, useStreaming);
+            sendButton.onClick.AddListener(SendMessage);
 
-            sendButton.onClick.AddListener(() =>
+            // Allow Enter key to send message
+            inputField.onSubmit.AddListener(text =>
             {
-                controller.SendUserMessage(inputField.text);
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    SendMessage();
+                }
             });
         }
 
@@ -37,11 +40,30 @@ namespace YagizEraslan.DeepSeek.Unity
             return modelType.ToModelString();
         }
 
+        private void SendMessage()
+        {
+            if (string.IsNullOrWhiteSpace(inputField.text)) return;
+
+            // Create controller with latest settings
+            controller = new DeepSeekChatController(
+                new DeepSeekApi(config),
+                GetSelectedModelName(),
+                AddFullMessageToUI,
+                AppendStreamingCharacter,
+                useStreaming
+            );
+
+            controller.SendUserMessage(inputField.text);
+            inputField.text = ""; // Clear input
+            inputField.ActivateInputField(); // Focus input again
+        }
+
         private void AddFullMessageToUI(ChatMessage message, bool isUser)
         {
             var prefab = isUser ? sentMessagePrefab : receivedMessagePrefab;
             var instance = Instantiate(prefab, messageContainer);
             var textComponent = instance.GetComponentInChildren<TMP_Text>();
+
             if (textComponent != null)
             {
                 if (!isUser && useStreaming)
@@ -57,7 +79,6 @@ namespace YagizEraslan.DeepSeek.Unity
             }
 
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)messageContainer);
-
         }
 
         private void AppendStreamingCharacter(string partialContent)
@@ -65,13 +86,11 @@ namespace YagizEraslan.DeepSeek.Unity
             if (activeStreamingText != null)
             {
                 activeStreamingText.text = partialContent;
-                Debug.Log($"[UI] Updated streaming content: {partialContent}");
             }
             else
             {
                 Debug.LogWarning("[UI] activeStreamingText is null — cannot update streaming content.");
             }
         }
-
     }
 }
