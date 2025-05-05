@@ -2,10 +2,6 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
-#if DEEPSEEK_HAS_UNITASK
- using Cysharp.Threading.Tasks;
-#endif
-
 namespace YagizEraslan.DeepSeek.Unity
 {
     public class DeepSeekChat : MonoBehaviour
@@ -48,17 +44,20 @@ namespace YagizEraslan.DeepSeek.Unity
             var textComponent = instance.GetComponentInChildren<TMP_Text>();
             if (textComponent != null)
             {
-                textComponent.text = useStreaming ? "" : message.content;
+                if (!isUser && useStreaming)
+                {
+                    textComponent.text = "";
+                    activeStreamingText = textComponent;
+                }
+                else
+                {
+                    textComponent.text = message.content;
+                    activeStreamingText = null;
+                }
             }
 
-            if (!isUser && useStreaming)
-            {
-                activeStreamingText = textComponent;
-            }
-            else
-            {
-                activeStreamingText = null;
-            }
+            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)messageContainer);
+
         }
 
         private void AppendStreamingCharacter(string partialContent)

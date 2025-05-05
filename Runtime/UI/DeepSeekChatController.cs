@@ -58,6 +58,15 @@ namespace YagizEraslan.DeepSeek.Unity
             if (useStreaming)
             {
                 currentStreamContent = "";
+
+                // Create placeholder AI message in UI BEFORE starting the stream
+                var aiMessage = new ChatMessage
+                {
+                    role = "assistant",
+                    content = "" // start with empty
+                };
+                onMessageUpdate?.Invoke(aiMessage, false); // 👈 this instantiates the UI prefab and assigns activeStreamingText
+
                 streamingApi.CreateChatCompletionStream(
                     request,
                     deepSeekApi.ApiKey,
@@ -66,8 +75,7 @@ namespace YagizEraslan.DeepSeek.Unity
                         currentStreamContent += partialToken;
                         onStreamingUpdate?.Invoke(currentStreamContent);
                     });
-            }
-            else
+            }else
             {
                 HandleFullResponse(request);
             }
