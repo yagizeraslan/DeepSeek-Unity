@@ -159,16 +159,18 @@ To test everything:
 
 ## 🧩 Example Integration
 
+### 🕐 Non-Streaming (Full Response)
+
 ```csharp
 [SerializeField] private DeepSeekSettings config;
 
-void Start()
+private async void Start()
 {
     var api = new DeepSeekApi(config);
     var request = new ChatCompletionRequest
     {
-        model = DeepSeekModel.DeepSeekChat.ToModelString(),
-        messages = new List<ChatMessage>
+        model = DeepSeekModel.DeepSeek_V3.ToModelString(),
+        messages = new ChatMessage[]
         {
             new ChatMessage { role = "system", content = "You're a helpful assistant." },
             new ChatMessage { role = "user", content = "Tell me something cool." }
@@ -176,7 +178,41 @@ void Start()
     };
 
     var response = await api.CreateChatCompletion(request);
-    Debug.Log(response.choices[0].message.content);
+    Debug.Log("[FULL RESPONSE] " + response.choices[0].message.content);
+}
+
+```
+
+### 🔄 Streaming (Real-Time Updates)
+```csharp
+[SerializeField] private DeepSeekSettings config;
+
+private void Start()
+{
+    RunStreamingExample();
+}
+
+private void RunStreamingExample()
+{
+    var request = new ChatCompletionRequest
+    {
+        model = DeepSeekModel.DeepSeek_V3.ToModelString(),
+        messages = new ChatMessage[]
+        {
+            new ChatMessage { role = "user", content = "Stream a fun fact about the ocean." }
+        },
+        stream = true
+    };
+
+    var streamingApi = new DeepSeekStreamingApi();
+    streamingApi.CreateChatCompletionStream(
+        request,
+        config.apiKey,
+        partial =>
+        {
+            Debug.Log("[STREAMING] " + partial); // Called for each streamed segment
+        }
+    );
 }
 
 ```
