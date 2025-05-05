@@ -113,10 +113,6 @@
 4. Drag the `DeepSeekChat` prefab from the sample into your scene.
 5. Hit Play — and chat with DeepSeek AI in seconds 💬
 
-🧠 You can change model type and streaming mode at runtime from the inspector — 
-the SDK automatically picks up the latest settings when you send a new message.
-Also, on the sample scene, you can send message via pressing Enter button as well instead of just clicking the Send button, small feature but good for testing.
-
 ---
 
 ## 🧪 Sample Scene
@@ -133,6 +129,9 @@ To test everything:
     ```
     
 4. Press Play — you're live.
+
+🧠 **Runtime Adaptive:** You can change model type and streaming mode during play — the SDK picks up changes automatically for each new message.
+- You can also press **Enter** instead of clicking Send button — handy for fast testing.
 
 ---
 
@@ -187,8 +186,6 @@ void Start()
 ## 🛠 Advanced Usage
 
 ### 🔄 Streaming Support
-
-DeepSeek-Unity supports real-time streaming using DeepSeek’s native API streaming features.
 
 DeepSeek-Unity supports **real-time streaming** using DeepSeek's official `stream: true` Server-Sent Events (SSE) endpoint.
 
