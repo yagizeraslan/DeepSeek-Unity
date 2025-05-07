@@ -97,9 +97,7 @@
     
     ```
     
-5. Click **Add**
-
-✅ Setup Wizard will guide you after install!
+5. ✅ Done
 
 ---
 
@@ -107,11 +105,9 @@
 
 ### 🔧 Setup
 
-1. After installation, the **Setup Wizard** will automatically open.
-2. Paste your **API key** into the wizard window.
-3. (Optional) Create a `DeepSeekSettings` asset inside the wizard for runtime-safe storage.
-4. Drag the `DeepSeekChat` prefab from the sample into your scene.
-5. Hit Play — and chat with DeepSeek AI in seconds 💬
+1. After installation, download Sample scene from Package Manager
+2. Paste your **API key** into the DeepSeekSettings.asset.
+3. Hit Play — and chat with DeepSeek AI in seconds 💬
 
 ---
 
@@ -277,7 +273,7 @@ Your support helps me continue maintaining and improving this project. Thank you
 
 Unofficial integration. DeepSeek™ is a trademark of Hangzhou DeepSeek Artificial Intelligence Co., Ltd.
 
-MIT License.
+This project is licensed under the MIT License.
 
 ---
 
