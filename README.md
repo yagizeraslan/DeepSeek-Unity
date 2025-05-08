@@ -34,7 +34,7 @@
   <img alt="Android" src="https://img.shields.io/badge/Platform-Android-green">
 </p>
 
-# 🧠 DeepSeek API for Unity
+# 🐳 DeepSeek API for Unity
 
 > 💬 A clean, modular Unity integration for DeepSeek's powerful LLMs — chat, reasoning, and task automation made easy.
 > 
