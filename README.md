@@ -47,6 +47,7 @@
 
 - ✅ Clean, reusable SDK for DeepSeek API
 - 🔄 Supports true SSE-based streaming and non-streaming chat completions
+- 🛡️ Robust error handling and automatic resource management
 - 🧠 Compatible with multiple models (DeepSeek Chat, Reasoner)
 - 🎨 Modular & customizable UI chat component
 - 🔐 Secure API key storage (runtime-safe)
@@ -219,10 +220,13 @@ private void RunStreamingExample()
 
 ### 🔄 Streaming Support
 
-DeepSeek-Unity supports **real-time streaming** using DeepSeek's official `stream: true` Server-Sent Events (SSE) endpoint.
+DeepSeek-Unity supports **reliable real-time streaming** using DeepSeek's official `stream: true` Server-Sent Events (SSE) endpoint.
 
 ✅ Uses Unity's `DownloadHandlerScript` for chunked response handling  
 ✅ UI updates per-token (no simulated typewriter effect)  
+✅ Automatic resource cleanup and memory management
+✅ Built-in error handling with user-friendly messages
+✅ Request timeout protection (60s default)
 ✅ No coroutines, no external libraries — works natively in Unity
 
 To enable:
@@ -230,7 +234,6 @@ To enable:
 - Partial responses will automatically stream into the UI
 
 📌 You can toggle streaming on/off at runtime.
-
 ### 💬 Multiple Models
 
 ```csharp
@@ -251,6 +254,11 @@ DeepSeekModel.DeepSeek_R1
 
 → Make sure you're on a platform that supports `DownloadHandlerScript` (Standalone or Editor).  
 → WebGL and iOS may have platform limitations for live SSE streams.
+
+**Getting error messages in the chat?**
+
+→ Error messages now display directly in the chat interface for better debugging.  
+→ Check Unity Console for detailed technical error information.
 
 **Seeing JSON parse warnings in streaming mode?**  
 
