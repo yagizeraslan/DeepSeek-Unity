@@ -24,7 +24,6 @@ namespace YagizEraslan.DeepSeek.Unity
                 Debug.LogError("DeepSeekChatController requires DeepSeekApi instance, not just IDeepSeekApi interface!");
             }
             this.deepSeekApi = concreteApi;
-            this.deepSeekApi = concreteApi;
             this.streamingApi = new DeepSeekStreamingApi();
             this.selectedModelName = modelName;
             this.onMessageUpdate = messageCallback;
@@ -74,8 +73,44 @@ namespace YagizEraslan.DeepSeek.Unity
                     {
                         currentStreamContent += partialToken;
                         onStreamingUpdate?.Invoke(currentStreamContent);
+                    },
+                    error =>
+                    {
+                        // Handle streaming errors by showing them to the user
+                        Debug.LogError($"DeepSeek streaming error: {error}");
+                        string errorMessage = $"❌ Streaming Error: {error}";
+                        
+                        // If we have current streaming content, append error to it
+                        if (!string.IsNullOrEmpty(currentStreamContent))
+                        {
+                            currentStreamContent += $"\n\n{errorMessage}";
+                        }
+                        else
+                        {
+                            currentStreamContent = errorMessage;
+                        }
+                        
+                        onStreamingUpdate?.Invoke(currentStreamContent);
+                        
+                        // Add the error message to history so it doesn't get lost
+                        var errorChatMessage = new ChatMessage
+                        {
+                            role = "assistant",
+                            content = currentStreamContent
+                        };
+                        // Replace the empty message we added earlier
+                        if (history.Count > 0 && history[history.Count - 1].role == "assistant" && 
+                            string.IsNullOrEmpty(history[history.Count - 1].content))
+                        {
+                            history[history.Count - 1] = errorChatMessage;
+                        }
+                        else
+                        {
+                            history.Add(errorChatMessage);
+                        }
                     });
-            }else
+            }
+            else
             {
                 HandleFullResponse(request);
             }
@@ -96,11 +131,29 @@ namespace YagizEraslan.DeepSeek.Unity
                 else
                 {
                     Debug.LogWarning("No response choices received from DeepSeek API.");
+                    
+                    // Add error message to UI
+                    var errorMessage = new ChatMessage
+                    {
+                        role = "assistant",
+                        content = "❌ Error: No response received from DeepSeek API."
+                    };
+                    history.Add(errorMessage);
+                    onMessageUpdate?.Invoke(errorMessage, false);
                 }
             }
             catch (Exception ex)
             {
                 Debug.LogError($"Error while sending message to DeepSeek API: {ex.Message}");
+                
+                // Add error message to UI
+                var errorMessage = new ChatMessage
+                {
+                    role = "assistant",
+                    content = $"❌ Error: {ex.Message}"
+                };
+                history.Add(errorMessage);
+                onMessageUpdate?.Invoke(errorMessage, false);
             }
         }
     }
