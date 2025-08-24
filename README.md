@@ -53,6 +53,7 @@
 - 🔐 Secure API key storage (runtime-safe)
 - ⚙️ Built with Unity Package Manager (UPM)
 - 🧪 Includes sample scene & prefabs
+- 🚀 **NEW**: Advanced memory management with automatic cleanup
 
 ---
 
@@ -228,12 +229,50 @@ DeepSeek-Unity supports **reliable real-time streaming** using DeepSeek's offici
 ✅ Built-in error handling with user-friendly messages
 ✅ Request timeout protection (60s default)
 ✅ No coroutines, no external libraries — works natively in Unity
+✅ **NEW**: Smart memory limits prevent unbounded growth in long conversations
 
 To enable:
 - Check `Use Streaming` in the chat prefab or component
 - Partial responses will automatically stream into the UI
 
 📌 You can toggle streaming on/off at runtime.
+
+### 🧠 Memory Management
+
+DeepSeek-Unity now includes intelligent memory management to prevent memory bloat during long conversations:
+
+**Chat History Limits:**
+- Automatically caps conversation history at **50 messages** (configurable)
+- Trims to **30 messages** when limit is reached, preserving recent context
+- Manual cleanup available via `controller.ClearHistory()`
+
+**UI GameObject Management:**
+- Limits message GameObjects to **100 instances** (configurable in Inspector)
+- Automatically removes oldest UI elements when limit exceeded
+- Prevents UI hierarchy bloat and maintains performance
+
+**Controller Lifecycle:**
+- Single controller instance reused throughout chat session
+- Prevents memory leaks from abandoned controller instances
+- Proper cleanup on component destruction
+
+```csharp
+// Access memory management features
+public class CustomChat : MonoBehaviour 
+{
+    private DeepSeekChatController controller;
+    
+    void SomeMethod() 
+    {
+        // Check current history size
+        Debug.Log($"History count: {controller.GetHistoryCount()}");
+        
+        // Manual cleanup if needed
+        controller.ClearHistory();
+    }
+}
+```
+
 ### 💬 Multiple Models
 
 ```csharp

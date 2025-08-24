@@ -13,6 +13,9 @@ namespace YagizEraslan.DeepSeek.Unity
         private readonly Action<string> onStreamingUpdate;
         private readonly string selectedModelName;
         private readonly bool useStreaming;
+        
+        private const int MAX_HISTORY_SIZE = 50;
+        private const int TRIM_TO_SIZE = 30;
 
         private string currentStreamContent = "";
 
@@ -45,6 +48,7 @@ namespace YagizEraslan.DeepSeek.Unity
                 content = userMessage
             };
             history.Add(userChat);
+            TrimHistoryIfNeeded();
             onMessageUpdate?.Invoke(userChat, true);
 
             var request = new ChatCompletionRequest
@@ -155,6 +159,27 @@ namespace YagizEraslan.DeepSeek.Unity
                 history.Add(errorMessage);
                 onMessageUpdate?.Invoke(errorMessage, false);
             }
+        }
+
+        private void TrimHistoryIfNeeded()
+        {
+            if (history.Count > MAX_HISTORY_SIZE)
+            {
+                int messagesToRemove = history.Count - TRIM_TO_SIZE;
+                history.RemoveRange(0, messagesToRemove);
+                Debug.Log($"Chat history trimmed. Removed {messagesToRemove} old messages. Current size: {history.Count}");
+            }
+        }
+
+        public void ClearHistory()
+        {
+            history.Clear();
+            Debug.Log("Chat history cleared manually");
+        }
+
+        public int GetHistoryCount()
+        {
+            return history.Count;
         }
     }
 }

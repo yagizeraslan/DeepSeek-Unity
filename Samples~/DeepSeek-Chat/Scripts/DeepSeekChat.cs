@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 namespace YagizEraslan.DeepSeek.Unity
 {
@@ -18,8 +19,14 @@ namespace YagizEraslan.DeepSeek.Unity
         [SerializeField] private RectTransform receivedMessagePrefab;
         [SerializeField] private Transform messageContainer;
 
+        [Header("Memory Management")]
+        [SerializeField] private int maxUIMessages = 100;
+        [SerializeField] private int trimToMessages = 70;
+
         private DeepSeekChatController controller;
         private TMP_Text activeStreamingText;
+        private bool controllerInitialized = false;
+        private readonly List<GameObject> messageGameObjects = new();
 
         private void Start()
         {
@@ -44,14 +51,18 @@ namespace YagizEraslan.DeepSeek.Unity
         {
             if (string.IsNullOrWhiteSpace(inputField.text)) return;
 
-            // Create controller with latest settings
-            controller = new DeepSeekChatController(
-                new DeepSeekApi(config),
-                GetSelectedModelName(),
-                AddFullMessageToUI,
-                AppendStreamingCharacter,
-                useStreaming
-            );
+            // Initialize controller only once
+            if (!controllerInitialized)
+            {
+                controller = new DeepSeekChatController(
+                    new DeepSeekApi(config),
+                    GetSelectedModelName(),
+                    AddFullMessageToUI,
+                    AppendStreamingCharacter,
+                    useStreaming
+                );
+                controllerInitialized = true;
+            }
 
             controller.SendUserMessage(inputField.text);
             inputField.text = ""; // Clear input
@@ -63,6 +74,12 @@ namespace YagizEraslan.DeepSeek.Unity
             var prefab = isUser ? sentMessagePrefab : receivedMessagePrefab;
             var instance = Instantiate(prefab, messageContainer);
             var textComponent = instance.GetComponentInChildren<TMP_Text>();
+
+            // Add to tracking list
+            messageGameObjects.Add(instance.gameObject);
+            
+            // Trim old UI messages if needed
+            TrimUIMessagesIfNeeded();
 
             if (textComponent != null)
             {
@@ -90,6 +107,55 @@ namespace YagizEraslan.DeepSeek.Unity
             else
             {
                 Debug.LogWarning("[UI] activeStreamingText is null — cannot update streaming content.");
+            }
+        }
+
+        private void TrimUIMessagesIfNeeded()
+        {
+            if (messageGameObjects.Count > maxUIMessages)
+            {
+                int messagesToRemove = messageGameObjects.Count - trimToMessages;
+                
+                for (int i = 0; i < messagesToRemove; i++)
+                {
+                    if (messageGameObjects[i] != null)
+                    {
+                        DestroyImmediate(messageGameObjects[i]);
+                    }
+                }
+                
+                messageGameObjects.RemoveRange(0, messagesToRemove);
+                Debug.Log($"UI messages trimmed. Removed {messagesToRemove} old message GameObjects. Current count: {messageGameObjects.Count}");
+            }
+        }
+
+        public void ClearChat()
+        {
+            if (controller != null)
+            {
+                controller.ClearHistory();
+            }
+            
+            // Clear UI messages using tracked GameObjects
+            for (int i = 0; i < messageGameObjects.Count; i++)
+            {
+                if (messageGameObjects[i] != null)
+                {
+                    DestroyImmediate(messageGameObjects[i]);
+                }
+            }
+            messageGameObjects.Clear();
+            
+            activeStreamingText = null;
+        }
+
+        private void OnDestroy()
+        {
+            // Clean up event listeners
+            sendButton?.onClick.RemoveListener(SendMessage);
+            if (inputField != null)
+            {
+                inputField.onSubmit.RemoveAllListeners();
             }
         }
     }
