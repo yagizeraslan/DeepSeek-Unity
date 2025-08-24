@@ -112,6 +112,28 @@ namespace YagizEraslan.DeepSeek.Unity
                         {
                             history.Add(errorChatMessage);
                         }
+                    },
+                    () =>
+                    {
+                        // Streaming completed successfully - add final response to history
+                        var completedMessage = new ChatMessage
+                        {
+                            role = "assistant",
+                            content = currentStreamContent
+                        };
+                        
+                        // Replace the empty placeholder message we added at the beginning
+                        if (history.Count > 0 && history[history.Count - 1].role == "assistant" && 
+                            string.IsNullOrEmpty(history[history.Count - 1].content))
+                        {
+                            history[history.Count - 1] = completedMessage;
+                        }
+                        else
+                        {
+                            history.Add(completedMessage);
+                        }
+                        
+                        Debug.Log($"Streaming completed. Added response to history. History count: {history.Count}");
                     });
             }
             else

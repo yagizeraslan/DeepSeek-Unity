@@ -8,7 +8,7 @@ namespace YagizEraslan.DeepSeek.Unity
     public class DeepSeekStreamingApi
     {
         public void CreateChatCompletionStream(ChatCompletionRequest request, string apiKey, 
-            Action<string> onStreamUpdate, Action<string> onError = null, float timeoutSeconds = 60f)
+            Action<string> onStreamUpdate, Action<string> onError = null, Action onComplete = null, float timeoutSeconds = 60f)
         {
             request.stream = true;
             string json = JsonUtility.ToJson(request);
@@ -16,7 +16,7 @@ namespace YagizEraslan.DeepSeek.Unity
 
             UnityWebRequest requestStream = new UnityWebRequest("https://api.deepseek.com/chat/completions", "POST");
             requestStream.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            requestStream.downloadHandler = new StreamingDownloadHandler(onStreamUpdate, onError);
+            requestStream.downloadHandler = new StreamingDownloadHandler(onStreamUpdate, onError, onComplete);
             requestStream.SetRequestHeader("Content-Type", "application/json");
             requestStream.SetRequestHeader("Authorization", $"Bearer {apiKey}");
             requestStream.timeout = (int)timeoutSeconds;
@@ -42,12 +42,14 @@ namespace YagizEraslan.DeepSeek.Unity
             private StringBuilder buffer = new();
             private readonly Action<string> onStreamUpdate;
             private readonly Action<string> onError;
+            private readonly Action onComplete;
 
-            public StreamingDownloadHandler(Action<string> onStreamUpdate, Action<string> onError = null, int bufferSize = 1024)
+            public StreamingDownloadHandler(Action<string> onStreamUpdate, Action<string> onError = null, Action onComplete = null, int bufferSize = 1024)
                 : base(new byte[bufferSize])
             {
                 this.onStreamUpdate = onStreamUpdate;
                 this.onError = onError;
+                this.onComplete = onComplete;
             }
 
             protected override bool ReceiveData(byte[] data, int dataLength)
@@ -99,7 +101,11 @@ namespace YagizEraslan.DeepSeek.Unity
                 if (line.StartsWith("data: "))
                 {
                     string payload = line.Substring(6).Trim();
-                    if (payload == "[DONE]") return;
+                    if (payload == "[DONE]") 
+                    {
+                        onComplete?.Invoke();
+                        return;
+                    }
 
                     try
                     {
