@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace YagizEraslan.DeepSeek.Unity
 {
     [System.Serializable]
@@ -7,7 +5,11 @@ namespace YagizEraslan.DeepSeek.Unity
     {
         public string model;
         public ChatMessage[] messages;
-        public float temperature = 0.7f;
+        public float temperature = ApiConstants.DEFAULT_TEMPERATURE;
+        public int max_tokens = ApiConstants.DEFAULT_MAX_TOKENS;
+        public float top_p = ApiConstants.DEFAULT_TOP_P;
         public bool stream;
+
+        public static ChatCompletionRequestBuilder Builder() => new ChatCompletionRequestBuilder();
     }
 }

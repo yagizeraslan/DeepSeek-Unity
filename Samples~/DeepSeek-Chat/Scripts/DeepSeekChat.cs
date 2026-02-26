@@ -20,8 +20,8 @@ namespace YagizEraslan.DeepSeek.Unity
         [SerializeField] private Transform messageContainer;
 
         [Header("Memory Management")]
-        [SerializeField] private int maxUIMessages = 100;
-        [SerializeField] private int trimToMessages = 70;
+        [SerializeField] private int maxUIMessages = ApiConstants.DEFAULT_MAX_UI_MESSAGES;
+        [SerializeField] private int trimToMessages = ApiConstants.DEFAULT_UI_TRIM_COUNT;
 
         private DeepSeekChatController controller;
         private TMP_Text activeStreamingText;
@@ -32,7 +32,6 @@ namespace YagizEraslan.DeepSeek.Unity
         {
             sendButton.onClick.AddListener(SendMessage);
 
-            // Allow Enter key to send message
             inputField.onSubmit.AddListener(text =>
             {
                 if (!string.IsNullOrWhiteSpace(text))
@@ -51,7 +50,6 @@ namespace YagizEraslan.DeepSeek.Unity
         {
             if (string.IsNullOrWhiteSpace(inputField.text)) return;
 
-            // Initialize controller only once
             if (!controllerInitialized)
             {
                 controller = new DeepSeekChatController(
@@ -65,8 +63,8 @@ namespace YagizEraslan.DeepSeek.Unity
             }
 
             controller.SendUserMessage(inputField.text);
-            inputField.text = ""; // Clear input
-            inputField.ActivateInputField(); // Focus input again
+            inputField.text = "";
+            inputField.ActivateInputField();
         }
 
         private void AddFullMessageToUI(ChatMessage message, bool isUser)
@@ -75,10 +73,8 @@ namespace YagizEraslan.DeepSeek.Unity
             var instance = Instantiate(prefab, messageContainer);
             var textComponent = instance.GetComponentInChildren<TMP_Text>();
 
-            // Add to tracking list
             messageGameObjects.Add(instance.gameObject);
-            
-            // Trim old UI messages if needed
+
             TrimUIMessagesIfNeeded();
 
             if (textComponent != null)
@@ -106,52 +102,40 @@ namespace YagizEraslan.DeepSeek.Unity
             }
             else
             {
-                Debug.LogWarning("[UI] activeStreamingText is null — cannot update streaming content.");
+                Debug.LogWarning($"{ApiConstants.LOG_PREFIX_CHAT} activeStreamingText is null - cannot update streaming content.");
             }
         }
 
         private void TrimUIMessagesIfNeeded()
         {
-            if (messageGameObjects.Count > maxUIMessages)
+            if (HistoryTrimmer.TrimGameObjectsIfNeeded(messageGameObjects, maxUIMessages, trimToMessages))
             {
-                int messagesToRemove = messageGameObjects.Count - trimToMessages;
-                
-                for (int i = 0; i < messagesToRemove; i++)
-                {
-                    if (messageGameObjects[i] != null)
-                    {
-                        DestroyImmediate(messageGameObjects[i]);
-                    }
-                }
-                
-                messageGameObjects.RemoveRange(0, messagesToRemove);
-                Debug.Log($"UI messages trimmed. Removed {messagesToRemove} old message GameObjects. Current count: {messageGameObjects.Count}");
+                Debug.Log($"{ApiConstants.LOG_PREFIX_CHAT} UI messages trimmed. Current count: {messageGameObjects.Count}");
             }
+        }
+
+        public void CancelCurrentStream()
+        {
+            controller?.CancelCurrentStream();
         }
 
         public void ClearChat()
         {
-            if (controller != null)
+            controller?.ClearHistory();
+
+            foreach (var go in messageGameObjects)
             {
-                controller.ClearHistory();
-            }
-            
-            // Clear UI messages using tracked GameObjects
-            for (int i = 0; i < messageGameObjects.Count; i++)
-            {
-                if (messageGameObjects[i] != null)
-                {
-                    DestroyImmediate(messageGameObjects[i]);
-                }
+                if (go != null)
+                    Destroy(go);
             }
             messageGameObjects.Clear();
-            
+
             activeStreamingText = null;
+            Debug.Log($"{ApiConstants.LOG_PREFIX_CHAT} Chat cleared");
         }
 
         private void OnDestroy()
         {
-            // Clean up event listeners
             sendButton?.onClick.RemoveListener(SendMessage);
             if (inputField != null)
             {

@@ -5,51 +5,85 @@ using UnityEngine.Networking;
 
 namespace YagizEraslan.DeepSeek.Unity
 {
-    public class DeepSeekStreamingApi
+    public class DeepSeekStreamingApi : IDeepSeekStreamingApi
     {
-        public void CreateChatCompletionStream(ChatCompletionRequest request, string apiKey, 
-            Action<string> onStreamUpdate, Action<string> onError = null, Action onComplete = null, float timeoutSeconds = 60f)
+        private UnityWebRequest currentRequest;
+        private bool isCancelled;
+
+        public void CreateChatCompletionStream(
+            ChatCompletionRequest request,
+            string apiKey,
+            Action<string> onStreamUpdate,
+            Action<string> onError = null,
+            Action onComplete = null,
+            float timeoutSeconds = 60f)
         {
+            if (request == null)
+            {
+                onError?.Invoke("Request cannot be null");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                onError?.Invoke("API key is not configured");
+                return;
+            }
+
+            isCancelled = false;
             request.stream = true;
             string json = JsonUtility.ToJson(request);
             byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
 
-            UnityWebRequest requestStream = new UnityWebRequest("https://api.deepseek.com/chat/completions", "POST");
-            requestStream.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            requestStream.downloadHandler = new StreamingDownloadHandler(onStreamUpdate, onError, onComplete);
-            requestStream.SetRequestHeader("Content-Type", "application/json");
-            requestStream.SetRequestHeader("Authorization", $"Bearer {apiKey}");
-            requestStream.timeout = (int)timeoutSeconds;
+            var sseParser = new SseParser(onStreamUpdate, onComplete, onError);
 
-            requestStream.SendWebRequest().completed += _ =>
+            currentRequest = new UnityWebRequest(ApiConstants.API_URL, "POST");
+            currentRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            currentRequest.downloadHandler = new StreamingDownloadHandler(sseParser, onError);
+            currentRequest.SetRequestHeader(ApiConstants.HEADER_CONTENT_TYPE, ApiConstants.CONTENT_TYPE_JSON);
+            currentRequest.SetRequestHeader(ApiConstants.HEADER_AUTHORIZATION, ApiConstants.BEARER_PREFIX + apiKey);
+            currentRequest.timeout = (int)timeoutSeconds;
+
+            currentRequest.SendWebRequest().completed += _ =>
             {
-                if (requestStream.result == UnityWebRequest.Result.ConnectionError || 
-                    requestStream.result == UnityWebRequest.Result.ProtocolError ||
-                    requestStream.result == UnityWebRequest.Result.DataProcessingError)
+                if (isCancelled)
                 {
-                    string errorMsg = $"Request failed: {requestStream.error} (Response Code: {requestStream.responseCode})";
-                    Debug.LogError("DeepSeek stream request failed: " + errorMsg);
+                    Debug.Log($"{ApiConstants.LOG_PREFIX_STREAMING} Stream cancelled by user");
+                }
+                else if (currentRequest.result == UnityWebRequest.Result.ConnectionError ||
+                    currentRequest.result == UnityWebRequest.Result.ProtocolError ||
+                    currentRequest.result == UnityWebRequest.Result.DataProcessingError)
+                {
+                    string errorMsg = $"Request failed: {currentRequest.error} (Response Code: {currentRequest.responseCode})";
+                    Debug.LogError($"{ApiConstants.LOG_PREFIX_STREAMING} {errorMsg}");
                     onError?.Invoke(errorMsg);
                 }
-                
-                // Always dispose the request
-                requestStream.Dispose();
+
+                currentRequest?.Dispose();
+                currentRequest = null;
             };
+        }
+
+        public void CancelStream()
+        {
+            if (currentRequest != null)
+            {
+                isCancelled = true;
+                currentRequest.Abort();
+                Debug.Log($"{ApiConstants.LOG_PREFIX_STREAMING} Stream cancellation requested");
+            }
         }
 
         private class StreamingDownloadHandler : DownloadHandlerScript
         {
-            private StringBuilder buffer = new();
-            private readonly Action<string> onStreamUpdate;
+            private readonly SseParser sseParser;
             private readonly Action<string> onError;
-            private readonly Action onComplete;
 
-            public StreamingDownloadHandler(Action<string> onStreamUpdate, Action<string> onError = null, Action onComplete = null, int bufferSize = 1024)
+            public StreamingDownloadHandler(SseParser parser, Action<string> onError = null, int bufferSize = 1024)
                 : base(new byte[bufferSize])
             {
-                this.onStreamUpdate = onStreamUpdate;
+                this.sseParser = parser ?? throw new ArgumentNullException(nameof(parser));
                 this.onError = onError;
-                this.onComplete = onComplete;
             }
 
             protected override bool ReceiveData(byte[] data, int dataLength)
@@ -59,34 +93,11 @@ namespace YagizEraslan.DeepSeek.Unity
                 try
                 {
                     string chunk = Encoding.UTF8.GetString(data, 0, dataLength);
-                    buffer.Append(chunk);
-
-                    string bufferContent = buffer.ToString();
-                    string[] lines = bufferContent.Split('\n');
-                    
-                    // Keep the last incomplete line in buffer if buffer doesn't end with newline
-                    if (lines.Length > 0 && !bufferContent.EndsWith('\n'))
-                    {
-                        buffer.Clear();
-                        buffer.Append(lines[lines.Length - 1]);
-                        // Process all lines except the last incomplete one
-                        for (int i = 0; i < lines.Length - 1; i++)
-                        {
-                            ProcessLine(lines[i]);
-                        }
-                    }
-                    else
-                    {
-                        buffer.Clear();
-                        foreach (string line in lines)
-                        {
-                            ProcessLine(line);
-                        }
-                    }
+                    sseParser.ProcessChunk(chunk);
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"Error processing streaming data: {e.Message}");
+                    Debug.LogError($"{ApiConstants.LOG_PREFIX_STREAMING} Error processing streaming data: {e.Message}");
                     onError?.Invoke($"Data processing error: {e.Message}");
                     return false;
                 }
@@ -94,44 +105,10 @@ namespace YagizEraslan.DeepSeek.Unity
                 return true;
             }
 
-            private void ProcessLine(string line)
-            {
-                if (string.IsNullOrWhiteSpace(line)) return;
-
-                if (line.StartsWith("data: "))
-                {
-                    string payload = line.Substring(6).Trim();
-                    if (payload == "[DONE]") 
-                    {
-                        onComplete?.Invoke();
-                        return;
-                    }
-
-                    try
-                    {
-                        var parsed = JsonUtility.FromJson<StreamingDelta>(payload);
-                        string content = parsed?.choices?[0]?.delta?.content;
-                        if (!string.IsNullOrEmpty(content))
-                        {
-                            onStreamUpdate?.Invoke(content);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogWarning($"Failed to parse stream chunk: {e.Message}\nPayload: {payload}");
-                        // Don't call onError for individual parsing failures as they're common in streaming
-                    }
-                }
-            }
-
             protected override void CompleteContent()
             {
                 base.CompleteContent();
-                // Process any remaining content in buffer
-                if (buffer.Length > 0)
-                {
-                    ProcessLine(buffer.ToString());
-                }
+                sseParser.ProcessRemainingBuffer();
             }
 
             protected override void ReceiveContentLengthHeader(ulong contentLength)
@@ -141,26 +118,8 @@ namespace YagizEraslan.DeepSeek.Unity
 
             public override void Dispose()
             {
-                buffer?.Clear();
+                sseParser?.Reset();
                 base.Dispose();
-            }
-        }
-
-        [Serializable]
-        private class StreamingDelta
-        {
-            public Choice[] choices;
-
-            [Serializable]
-            public class Choice
-            {
-                public Delta delta;
-            }
-
-            [Serializable]
-            public class Delta
-            {
-                public string content;
             }
         }
     }

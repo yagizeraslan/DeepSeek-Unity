@@ -6,32 +6,40 @@ namespace YagizEraslan.DeepSeek.Unity
 {
     public class DeepSeekChatController
     {
-        private readonly DeepSeekStreamingApi streamingApi;
-        private readonly DeepSeekApi deepSeekApi;
+        private readonly IDeepSeekStreamingApi streamingApi;
+        private readonly IDeepSeekApi deepSeekApi;
         private readonly List<ChatMessage> history = new();
         private readonly Action<ChatMessage, bool> onMessageUpdate;
         private readonly Action<string> onStreamingUpdate;
         private readonly string selectedModelName;
         private readonly bool useStreaming;
-        
-        private const int MAX_HISTORY_SIZE = 50;
-        private const int TRIM_TO_SIZE = 30;
 
         private string currentStreamContent = "";
 
-        public DeepSeekChatController(IDeepSeekApi api, string modelName, Action<ChatMessage, bool> messageCallback, Action<string> streamingCallback, bool useStreaming)
+        public DeepSeekChatController(
+            IDeepSeekApi api,
+            IDeepSeekStreamingApi streaming,
+            string modelName,
+            Action<ChatMessage, bool> messageCallback,
+            Action<string> streamingCallback,
+            bool useStreaming)
         {
-            var concreteApi = api as DeepSeekApi;
-            if (concreteApi == null)
-            {
-                Debug.LogError("DeepSeekChatController requires DeepSeekApi instance, not just IDeepSeekApi interface!");
-            }
-            this.deepSeekApi = concreteApi;
-            this.streamingApi = new DeepSeekStreamingApi();
+            this.deepSeekApi = api ?? throw new ArgumentNullException(nameof(api));
+            this.streamingApi = streaming ?? throw new ArgumentNullException(nameof(streaming));
             this.selectedModelName = modelName;
             this.onMessageUpdate = messageCallback;
             this.onStreamingUpdate = streamingCallback;
             this.useStreaming = useStreaming;
+        }
+
+        public DeepSeekChatController(
+            IDeepSeekApi api,
+            string modelName,
+            Action<ChatMessage, bool> messageCallback,
+            Action<string> streamingCallback,
+            bool useStreaming)
+            : this(api, new DeepSeekStreamingApi(), modelName, messageCallback, streamingCallback, useStreaming)
+        {
         }
 
         public void SendUserMessage(string userMessage)
@@ -42,99 +50,20 @@ namespace YagizEraslan.DeepSeek.Unity
                 return;
             }
 
-            var userChat = new ChatMessage
-            {
-                role = "user",
-                content = userMessage
-            };
+            var userChat = ChatMessageFactory.CreateUserMessage(userMessage);
             history.Add(userChat);
             TrimHistoryIfNeeded();
             onMessageUpdate?.Invoke(userChat, true);
 
-            var request = new ChatCompletionRequest
-            {
-                model = selectedModelName,
-                messages = history.ToArray(),
-                stream = useStreaming
-            };
+            var request = ChatCompletionRequest.Builder()
+                .WithModel(selectedModelName)
+                .WithMessages(history)
+                .WithStreaming(useStreaming)
+                .Build();
 
             if (useStreaming)
             {
-                currentStreamContent = "";
-
-                // Create placeholder AI message in UI BEFORE starting the stream
-                var aiMessage = new ChatMessage
-                {
-                    role = "assistant",
-                    content = "" // start with empty
-                };
-                onMessageUpdate?.Invoke(aiMessage, false); // 👈 this instantiates the UI prefab and assigns activeStreamingText
-
-                streamingApi.CreateChatCompletionStream(
-                    request,
-                    deepSeekApi.ApiKey,
-                    partialToken =>
-                    {
-                        currentStreamContent += partialToken;
-                        onStreamingUpdate?.Invoke(currentStreamContent);
-                    },
-                    error =>
-                    {
-                        // Handle streaming errors by showing them to the user
-                        Debug.LogError($"DeepSeek streaming error: {error}");
-                        string errorMessage = $"❌ Streaming Error: {error}";
-                        
-                        // If we have current streaming content, append error to it
-                        if (!string.IsNullOrEmpty(currentStreamContent))
-                        {
-                            currentStreamContent += $"\n\n{errorMessage}";
-                        }
-                        else
-                        {
-                            currentStreamContent = errorMessage;
-                        }
-                        
-                        onStreamingUpdate?.Invoke(currentStreamContent);
-                        
-                        // Add the error message to history so it doesn't get lost
-                        var errorChatMessage = new ChatMessage
-                        {
-                            role = "assistant",
-                            content = currentStreamContent
-                        };
-                        // Replace the empty message we added earlier
-                        if (history.Count > 0 && history[history.Count - 1].role == "assistant" && 
-                            string.IsNullOrEmpty(history[history.Count - 1].content))
-                        {
-                            history[history.Count - 1] = errorChatMessage;
-                        }
-                        else
-                        {
-                            history.Add(errorChatMessage);
-                        }
-                    },
-                    () =>
-                    {
-                        // Streaming completed successfully - add final response to history
-                        var completedMessage = new ChatMessage
-                        {
-                            role = "assistant",
-                            content = currentStreamContent
-                        };
-                        
-                        // Replace the empty placeholder message we added at the beginning
-                        if (history.Count > 0 && history[history.Count - 1].role == "assistant" && 
-                            string.IsNullOrEmpty(history[history.Count - 1].content))
-                        {
-                            history[history.Count - 1] = completedMessage;
-                        }
-                        else
-                        {
-                            history.Add(completedMessage);
-                        }
-                        
-                        Debug.Log($"Streaming completed. Added response to history. History count: {history.Count}");
-                    });
+                HandleStreamingResponse(request);
             }
             else
             {
@@ -142,55 +71,102 @@ namespace YagizEraslan.DeepSeek.Unity
             }
         }
 
+        private void HandleStreamingResponse(ChatCompletionRequest request)
+        {
+            currentStreamContent = "";
+
+            var aiMessage = ChatMessageFactory.CreateStreamingPlaceholder();
+            onMessageUpdate?.Invoke(aiMessage, false);
+
+            streamingApi.CreateChatCompletionStream(
+                request,
+                deepSeekApi.ApiKey,
+                partialToken =>
+                {
+                    currentStreamContent += partialToken;
+                    onStreamingUpdate?.Invoke(currentStreamContent);
+                },
+                error =>
+                {
+                    Debug.LogError($"DeepSeek streaming error: {error}");
+
+                    if (!string.IsNullOrEmpty(currentStreamContent))
+                    {
+                        currentStreamContent += $"\n\n❌ Streaming Error: {error}";
+                    }
+                    else
+                    {
+                        currentStreamContent = $"❌ Streaming Error: {error}";
+                    }
+
+                    onStreamingUpdate?.Invoke(currentStreamContent);
+
+                    var errorChatMessage = ChatMessageFactory.CreateAssistantMessage(currentStreamContent);
+                    UpdateOrAddLastAssistantMessage(errorChatMessage);
+                },
+                () =>
+                {
+                    var completedMessage = ChatMessageFactory.CreateAssistantMessage(currentStreamContent);
+                    UpdateOrAddLastAssistantMessage(completedMessage);
+                    Debug.Log($"Streaming completed. Added response to history. History count: {history.Count}");
+                });
+        }
+
+        private void UpdateOrAddLastAssistantMessage(ChatMessage message)
+        {
+            if (history.Count > 0 &&
+                history[history.Count - 1].IsAssistantMessage &&
+                string.IsNullOrEmpty(history[history.Count - 1].content))
+            {
+                history[history.Count - 1] = message;
+            }
+            else
+            {
+                history.Add(message);
+            }
+        }
+
         private async void HandleFullResponse(ChatCompletionRequest request)
         {
-            try
-            {
-                var awaitedResponse = await deepSeekApi.CreateChatCompletion(request);
+            var result = await deepSeekApi.CreateChatCompletionAsync(request);
 
-                if (awaitedResponse != null && awaitedResponse.choices != null && awaitedResponse.choices.Length > 0)
+            result.Match(
+                onSuccess: response =>
                 {
-                    var aiMessage = awaitedResponse.choices[0].message;
-                    history.Add(aiMessage);
-                    onMessageUpdate?.Invoke(aiMessage, false);
-                }
-                else
-                {
-                    Debug.LogWarning("No response choices received from DeepSeek API.");
-                    
-                    // Add error message to UI
-                    var errorMessage = new ChatMessage
+                    if (response.choices != null && response.choices.Length > 0)
                     {
-                        role = "assistant",
-                        content = "❌ Error: No response received from DeepSeek API."
-                    };
+                        var aiMessage = response.choices[0].message;
+                        history.Add(aiMessage);
+                        onMessageUpdate?.Invoke(aiMessage, false);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("No response choices received from DeepSeek API.");
+                        var errorMessage = ChatMessageFactory.CreateErrorMessage("No response received from DeepSeek API.");
+                        history.Add(errorMessage);
+                        onMessageUpdate?.Invoke(errorMessage, false);
+                    }
+                },
+                onFailure: error =>
+                {
+                    Debug.LogError($"Error while sending message to DeepSeek API: {error}");
+                    var errorMessage = ChatMessageFactory.CreateErrorMessage(error);
                     history.Add(errorMessage);
                     onMessageUpdate?.Invoke(errorMessage, false);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Error while sending message to DeepSeek API: {ex.Message}");
-                
-                // Add error message to UI
-                var errorMessage = new ChatMessage
-                {
-                    role = "assistant",
-                    content = $"❌ Error: {ex.Message}"
-                };
-                history.Add(errorMessage);
-                onMessageUpdate?.Invoke(errorMessage, false);
-            }
+                });
         }
 
         private void TrimHistoryIfNeeded()
         {
-            if (history.Count > MAX_HISTORY_SIZE)
+            if (HistoryTrimmer.TrimIfNeeded(history, ApiConstants.DEFAULT_MAX_HISTORY_MESSAGES, ApiConstants.DEFAULT_HISTORY_TRIM_COUNT))
             {
-                int messagesToRemove = history.Count - TRIM_TO_SIZE;
-                history.RemoveRange(0, messagesToRemove);
-                Debug.Log($"Chat history trimmed. Removed {messagesToRemove} old messages. Current size: {history.Count}");
+                Debug.Log($"Chat history trimmed. Current size: {history.Count}");
             }
+        }
+
+        public void CancelCurrentStream()
+        {
+            streamingApi.CancelStream();
         }
 
         public void ClearHistory()
